@@ -46,3 +46,6 @@ http://localhost:8080/swagger-ui/index.html
 - [ ] OpenAPI 3 интеграция
 - [x] Swagger UI развернут и работает
 - [ ] Swagger поддерживается и обновляется при изменениях API
+
+openssl genpkey -algorithm RSA -out private.key -pkeyopt rsa_keygen_bits:2048
+openssl rand -base64 64
