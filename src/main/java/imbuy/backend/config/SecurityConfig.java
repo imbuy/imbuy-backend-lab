@@ -28,9 +28,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Публичные endpoints
                         .requestMatchers(
-                                "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
@@ -38,19 +36,17 @@ public class SecurityConfig {
                                 "/api/auth/**"
                         ).permitAll()
 
-                        // Публичные endpoints для просмотра
-                        .requestMatchers("/api/lots", "/api/lots/*", "/api/lots/active", "/api/lots/with-total").permitAll()
-                        .requestMatchers("/api/categories/**").permitAll()
-                        .requestMatchers("/api/users/*").permitAll() // публичные профили
+                        .requestMatchers(
+                                "/api/lots/**",
+                                "/api/categories/**",
+                                "/api/users/*"
+                        ).permitAll()
 
-                        // Защищенные endpoints
-                        .requestMatchers("/api/lots/**").authenticated()
                         .requestMatchers("/api/bids/**").authenticated()
                         .requestMatchers("/api/users/profile").authenticated()
 
-                        // Админские endpoints
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/users").hasAuthority("ADMIN") // список пользователей только для админов
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

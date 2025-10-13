@@ -27,11 +27,15 @@ public class AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
+
         User user = new User(
                 request.getEmail(),
                 passwordEncoder.encode(request.getPassword()),
                 request.getUsername()
         );
+
+        user.addRole("USER");
+
         userRepository.save(user);
         return toDto(user);
     }

@@ -1,10 +1,11 @@
-// src/main/java/imbuy/backend/controller/LotController.java
 package imbuy.backend.controller;
 
 import imbuy.backend.dto.*;
+import imbuy.backend.enums.LotStatus;
 import imbuy.backend.service.LotService;
 import imbuy.backend.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/lots")
 @RequiredArgsConstructor
 @Tag(name = "Lots", description = "Lot management APIs")
+@SecurityRequirement(name = "bearerAuth")
 public class LotController {
 
     private final LotService lotService;
@@ -47,7 +49,7 @@ public class LotController {
         filter.setOwnerId(ownerId);
         filter.setActiveOnly(activeOnly);
 
-        Pageable pageable = PageRequest.of(0, 20); // default pagination
+        Pageable pageable = PageRequest.of(0, 20);
         Long currentUserId = securityUtils.isAuthenticated() ? securityUtils.getCurrentUserId() : null;
         PageResponse<LotDto> lots = lotService.getLots(filter, pageable, currentUserId);
 

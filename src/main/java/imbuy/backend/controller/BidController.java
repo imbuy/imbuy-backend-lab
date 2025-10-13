@@ -1,4 +1,3 @@
-// src/main/java/imbuy/backend/controller/BidController.java
 package imbuy.backend.controller;
 
 import imbuy.backend.dto.BidDto;
@@ -7,6 +6,7 @@ import imbuy.backend.dto.PageResponse;
 import imbuy.backend.service.BidService;
 import imbuy.backend.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/lots/{lotId}/bids")
 @RequiredArgsConstructor
 @Tag(name = "Bids", description = "Bid management APIs")
+@SecurityRequirement(name = "bearerAuth")
 public class BidController {
 
     private final BidService bidService;

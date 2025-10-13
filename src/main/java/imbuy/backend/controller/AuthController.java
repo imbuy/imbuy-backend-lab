@@ -1,12 +1,11 @@
-// src/main/java/imbuy/backend/controller/AuthController.java
 package imbuy.backend.controller;
 
-import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.LoginRequest;
+import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.service.AuthService;
 import imbuy.backend.utils.SecurityUtils;
-import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +19,7 @@ import java.util.List;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "API для аутентификации и управления пользователями")
+@SecurityRequirement(name = "bearerAuth")
 public class AuthController {
 
     private final AuthService authService;
@@ -29,6 +29,7 @@ public class AuthController {
     public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
+
 
     @PostMapping("/auth/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginRequest request) {
