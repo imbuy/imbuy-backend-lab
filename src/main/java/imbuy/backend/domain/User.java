@@ -56,10 +56,20 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Favorite> favoriteLots = new HashSet<>();
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private Set<String> roles = new HashSet<>();
+
     public User(String email, String password, String username) {
         this.email = email;
         this.password = password;
         this.username = username;
+        this.roles.add("USER");
+    }
+
+    public void addRole(String role) {
+        this.roles.add(role);
     }
 
 }

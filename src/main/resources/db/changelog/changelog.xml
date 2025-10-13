@@ -23,6 +23,22 @@
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
         </createTable>
 
+        <!-- USER_ROLES для Spring Security -->
+        <createTable tableName="user_roles">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="user_roles" columnNames="user_id, role" constraintName="pk_user_roles"/>
+        <addForeignKeyConstraint constraintName="fk_user_roles_user"
+                                 baseTableName="user_roles" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
         <!-- CATEGORIES -->
         <createTable tableName="categories">
             <column name="id" type="BIGINT" autoIncrement="true">
