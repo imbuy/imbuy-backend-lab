@@ -158,5 +158,28 @@
                                  onDelete="CASCADE"/>
 
     </changeSet>
+    <changeSet id="insert-admin" author="imbuy">
+        <sql>
+            INSERT INTO users (email, password, username, balance, created_at)
+            VALUES ('admin@imbuy.com',
+                    '$2a$10$kfVHTZ24jK8ZQwjlBGCVUOkeCYYZg9Bkej4IyOlhxymtmTVsWL8m.',
+                    'admin', 0.00, CURRENT_TIMESTAMP)
+                ON CONFLICT (email) DO NOTHING;
+        </sql>
+    </changeSet>
+
+    <changeSet id="add-winner-id-to-lots" author="imbuy">
+        <addColumn tableName="lots">
+            <column name="winner_id" type="BIGINT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="lots"
+                baseColumnNames="winner_id"
+                constraintName="fk_lot_winner"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+    </changeSet>
 
 </databaseChangeLog>

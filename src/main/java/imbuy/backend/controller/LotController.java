@@ -1,7 +1,6 @@
 package imbuy.backend.controller;
 
 import imbuy.backend.dto.*;
-import imbuy.backend.enums.LotStatus;
 import imbuy.backend.service.LotService;
 import imbuy.backend.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -104,6 +103,25 @@ public class LotController {
         Long currentUserId = securityUtils.getCurrentUserId();
         LotDto lot = lotService.createLot(createLotDto, currentUserId);
         return new ResponseEntity<>(lot, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}/approve")
+    @Operation(summary = "Approve lot (Admin only)")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LotDto> approveLot(@PathVariable Long id) {
+        Long adminId = securityUtils.getCurrentUserId();
+        LotDto approvedLot = lotService.approveLot(id, adminId);
+        return ResponseEntity.ok(approvedLot);
+    }
+
+    @PutMapping("/{id}/reject")
+    @Operation(summary = "Cancelled lot (Admin only)")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LotDto> approveLot(@PathVariable Long id,
+                                             @RequestParam(required = false) String reason) {
+        Long adminId = securityUtils.getCurrentUserId();
+        LotDto cancelledLot = lotService.rejectLot(id, adminId, reason);
+        return ResponseEntity.ok(cancelledLot);
     }
 
     @PutMapping("/{id}")

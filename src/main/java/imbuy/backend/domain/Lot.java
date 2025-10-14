@@ -54,6 +54,10 @@ public class Lot {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @ManyToOne
+    @JoinColumn(name = "winner_id")
+    private User winner;
+
     @Enumerated(EnumType.STRING)
     @NotNull
     private LotStatus status;

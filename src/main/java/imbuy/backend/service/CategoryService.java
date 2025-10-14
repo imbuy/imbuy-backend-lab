@@ -22,21 +22,21 @@ public class CategoryService {
         List<Category> rootCategories = categoryRepository.findRootCategoriesWithChildren();
         CategoryTreeDto treeDto = new CategoryTreeDto();
         treeDto.setCategories(rootCategories.stream()
-                .map(this::convertToDtoWithChildren)
+                .map(this::mapToDtoWithChildren)
                 .collect(Collectors.toList()));
         return treeDto;
     }
 
     public List<CategoryDto> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(this::convertToDto)
+                .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
     public CategoryDto getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
-        return convertToDto(category);
+        return mapToDto(category);
     }
 
     public CategoryDto createCategory(CategoryDto categoryDto) {
@@ -54,7 +54,7 @@ public class CategoryService {
         }
 
         category = categoryRepository.save(category);
-        return convertToDto(category);
+        return mapToDto(category);
     }
 
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
@@ -72,7 +72,7 @@ public class CategoryService {
         }
 
         category = categoryRepository.save(category);
-        return convertToDto(category);
+        return mapToDto(category);
     }
 
     public void deleteCategory(Long id) {
@@ -90,7 +90,7 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
-    private CategoryDto convertToDto(Category category) {
+    private CategoryDto mapToDto(Category category) {
         CategoryDto dto = new CategoryDto();
         dto.setId(category.getId());
         dto.setName(category.getName());
@@ -101,10 +101,10 @@ public class CategoryService {
         return dto;
     }
 
-    private CategoryDto convertToDtoWithChildren(Category category) {
-        CategoryDto dto = convertToDto(category);
+    private CategoryDto mapToDtoWithChildren(Category category) {
+        CategoryDto dto = mapToDto(category);
         dto.setChildren(category.getChildren().stream()
-                .map(this::convertToDtoWithChildren)
+                .map(this::mapToDtoWithChildren)
                 .collect(Collectors.toList()));
         return dto;
     }

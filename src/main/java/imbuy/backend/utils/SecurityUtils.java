@@ -1,4 +1,3 @@
-// src/main/java/imbuy/backend/util/SecurityUtils.java
 package imbuy.backend.utils;
 
 import imbuy.backend.domain.User;

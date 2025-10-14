@@ -3,6 +3,7 @@ package imbuy.backend.service;
 import imbuy.backend.domain.User;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
+import imbuy.backend.exception.UserNotFoundException;
 import imbuy.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,18 +21,18 @@ public class UserService {
     public List<UserDto> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(this::toDto)
+                .map(this::mapToDto)
                 .toList();
     }
 
     public UserDto getUserById(Long id) {
         return userRepository.findById(id)
-                .map(this::toDto)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .map(this::mapToDto)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
-    public UserDto updateProfile(String email, RegisterRequest request) {
-        User user = userRepository.findByEmail(email)
+    public UserDto updateProfileById(Long userId, RegisterRequest request) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (request.getUsername() != null) user.setUsername(request.getUsername());
@@ -39,10 +40,10 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         userRepository.save(user);
-        return toDto(user);
+        return mapToDto(user);
     }
 
-    private UserDto toDto(User user) {
+    private UserDto mapToDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
