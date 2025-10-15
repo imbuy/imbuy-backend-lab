@@ -8,10 +8,10 @@ import imbuy.backend.dto.CreateBidDto;
 import imbuy.backend.dto.PageResponse;
 import imbuy.backend.enums.LotStatus;
 import imbuy.backend.repository.BidRepository;
-import imbuy.backend.repository.CategoryRepository;
 import imbuy.backend.repository.LotRepository;
 import imbuy.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BidService {
@@ -29,7 +30,7 @@ public class BidService {
     private final BidRepository bidRepository;
     private final LotRepository lotRepository;
     private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
+
 
     @Transactional(readOnly = true)
     public PageResponse<BidDto> getBidsByLotId(Long lotId, Pageable pageable) {
@@ -57,23 +58,21 @@ public class BidService {
         lot.setCurrentPrice(createBidDto.getAmount());
         lotRepository.save(lot);
 
+        log.info("Пользователь #{} ({}) сделал ставку {} на лот #{} ('{}')",
+                bidder.getId(), bidder.getUsername(), createBidDto.getAmount(), lot.getId(), lot.getTitle());
+
         return mapToDto(bid);
     }
 
     private void validateBid(Lot lot, BigDecimal amount, Long bidderId) {
+        LocalDateTime now = LocalDateTime.now();
+
         if (lot.getStatus() != LotStatus.ACTIVE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lot is not active");
         }
 
-        if (lot.getEndDate() != null && lot.getEndDate().isBefore(LocalDateTime.now())) {
-            lot.setStatus(LotStatus.COMPLETED);
-            if (lot.getCurrentPrice() != null) {
-                lot.setWinner(bidRepository.findTopByLotIdOrderByAmountDesc(lot.getId())
-                        .map(Bid::getBidder)
-                        .orElse(null));
-            }
-            lotRepository.save(lot);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lot has ended");
+        if (lot.getEndDate() != null && lot.getEndDate().isBefore(now)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lot has already ended");
         }
 
         if (lot.getOwner().getId().equals(bidderId)) {
