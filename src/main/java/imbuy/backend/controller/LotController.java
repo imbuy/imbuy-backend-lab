@@ -114,13 +114,13 @@ public class LotController {
         return ResponseEntity.ok(approvedLot);
     }
 
-    @PutMapping("/{id}/reject")
+    @PutMapping("/{id}/cancel")
     @Operation(summary = "Cancelled lot (Admin only)")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LotDto> approveLot(@PathVariable Long id,
+    public ResponseEntity<LotDto> cancelLot(@PathVariable Long id,
                                              @RequestParam(required = false) String reason) {
         Long adminId = securityUtils.getCurrentUserId();
-        LotDto cancelledLot = lotService.rejectLot(id, adminId, reason);
+        LotDto cancelledLot = lotService.cancelLot(id, adminId, reason);
         return ResponseEntity.ok(cancelledLot);
     }
 

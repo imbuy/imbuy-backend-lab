@@ -120,7 +120,7 @@ public class LotService {
     }
 
     @Transactional
-    public LotDto rejectLot(Long lotId, Long adminId, String reason) {
+    public LotDto cancelLot(Long lotId, Long adminId, String reason) {
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
 

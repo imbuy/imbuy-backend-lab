@@ -46,7 +46,7 @@ public class CategoryController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
+    @PostMapping("/create")
     @Operation(summary = "Create a new category")
     public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryDto categoryDto) {
         CategoryDto category = categoryService.createCategory(categoryDto);
@@ -54,7 +54,7 @@ public class CategoryController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     @Operation(summary = "Update category")
     public ResponseEntity<CategoryDto> updateCategory(
             @PathVariable Long id,
@@ -64,7 +64,7 @@ public class CategoryController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     @Operation(summary = "Delete category")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);

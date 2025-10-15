@@ -43,8 +43,8 @@ public class AuthController {
         return ResponseEntity.ok("Logged out successfully");
     }
 
-    @GetMapping("/users")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/users/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(authService.findAllUsers());
     }
