@@ -22,6 +22,7 @@ COPY --from=build /app/target/*.jar app.jar
 
 # Порт приложения
 EXPOSE 8080
-
+# Задаём часовой пояс через ENV
+ENV TZ=Europe/Warsaw
 # Точка входа
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 
 @Slf4j
 @Service
@@ -25,7 +27,9 @@ public class LotScheduler {
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void closeExpiredLots() {
-        LocalDateTime now = LocalDateTime.now();
+
+        ZoneId zone = ZoneId.of("Europe/Warsaw");
+        LocalDateTime now = LocalDateTime.now(zone);
         log.info("Запуск шедулера закрытия лотов: {}", now);
 
         int page = 0;
