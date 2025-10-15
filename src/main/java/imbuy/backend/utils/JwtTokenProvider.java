@@ -43,7 +43,6 @@ public class JwtTokenProvider {
         return claims.get("role", String.class);
     }
 
-    // Получение email
     public String getEmailFromToken(String token) {
         Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         Claims claims = Jwts.parserBuilder()
@@ -54,7 +53,6 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
-    // Общая проверка токена
     public boolean validateToken(String token) {
         try {
             Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());

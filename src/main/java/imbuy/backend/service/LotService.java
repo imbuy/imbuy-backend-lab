@@ -81,7 +81,6 @@ public class LotService {
         lot.setBidStep(createLotDto.getBidStep());
         lot.setOwner(owner);
         lot.setStatus(LotStatus.PENDING_APPROVAL);
-        lot.setStatus(LotStatus.ACTIVE);
 
         if (createLotDto.getCategoryId() != null) {
             Category category = categoryRepository.findById(createLotDto.getCategoryId())
