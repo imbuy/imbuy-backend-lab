@@ -1,6 +1,7 @@
 package imbuy.backend.controller;
 
 import imbuy.backend.dto.LoginRequest;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.service.AuthService;
@@ -9,11 +10,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -45,8 +46,13 @@ public class AuthController {
 
     @GetMapping("/users/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        return ResponseEntity.ok(authService.findAllUsers());
+    public ResponseEntity<PageResponse<UserDto>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, Math.min(size, 50));
+        PageResponse<UserDto> users = authService.findAllUsers(pageable);
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/users/{id}")

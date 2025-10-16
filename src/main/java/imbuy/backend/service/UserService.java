@@ -1,15 +1,16 @@
 package imbuy.backend.service;
 
 import imbuy.backend.domain.User;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.exception.UserNotFoundException;
 import imbuy.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,11 +19,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public List<UserDto> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(this::mapToDto)
-                .toList();
+    public PageResponse<UserDto> getAllUsers(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
+        return PageResponse.of(users.map(this::mapToDto));
     }
 
     public UserDto getUserById(Long id) {

@@ -1,17 +1,19 @@
 package imbuy.backend.controller;
 
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.service.UserService;
 import imbuy.backend.utils.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -24,11 +26,15 @@ public class UsersController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<PageResponse<UserDto>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, Math.min(size, 50));
+        PageResponse<UserDto> users = userService.getAllUsers(pageable);
+        return ResponseEntity.ok(users);
     }
 
-    // Публичный профиль по ID
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));

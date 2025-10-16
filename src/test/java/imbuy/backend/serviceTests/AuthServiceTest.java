@@ -2,6 +2,7 @@ package imbuy.backend.serviceTests;
 
 import imbuy.backend.domain.User;
 import imbuy.backend.dto.LoginRequest;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.exception.UserNotFoundException;
@@ -15,6 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -126,15 +131,23 @@ class AuthServiceTest {
     }
 
     @Test
-    void findAllUsers_ShouldReturnUserList() {
+    void findAllUsers_ShouldReturnPaginatedUserList() {
         List<User> users = List.of(user);
-        when(userRepository.findAll()).thenReturn(users);
+        Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 20), 1);
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(userPage);
 
-        List<UserDto> result = authService.findAllUsers();
+        PageResponse<UserDto> result = authService.findAllUsers(PageRequest.of(0, 20));
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(user.getEmail(), result.get(0).getEmail());
+        assertNotNull(result.getContent());
+        assertEquals(1, result.getContent().size());
+        assertEquals(user.getEmail(), result.getContent().get(0).getEmail());
+        assertEquals(0, result.getCurrentPage());
+        assertEquals(20, result.getPageSize());
+        assertFalse(result.isHasNext());
+        assertFalse(result.isHasPrevious());
+
+        verify(userRepository).findAll(any(Pageable.class));
     }
 
     @Test

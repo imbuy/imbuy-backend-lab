@@ -1,6 +1,7 @@
 package imbuy.backend.controllerTests;
 
 import imbuy.backend.controller.UsersController;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.service.UserService;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +38,7 @@ class UsersControllerTest {
 
     private UserDto userDto;
     private RegisterRequest registerRequest;
+    private PageResponse<UserDto> userPageResponse;
 
     @BeforeEach
     void setUp() {
@@ -47,19 +51,38 @@ class UsersControllerTest {
         registerRequest.setEmail("test@example.com");
         registerRequest.setUsername("testuser");
         registerRequest.setPassword("password");
+
+        userPageResponse = new PageResponse<>();
+        userPageResponse.setContent(List.of(userDto));
+        userPageResponse.setCurrentPage(0);
+        userPageResponse.setPageSize(20);
+        userPageResponse.setHasNext(false);
+        userPageResponse.setHasPrevious(false);
     }
 
     @Test
-    void getAllUsers_AsAdmin_ShouldReturnAllUsers() {
-        List<UserDto> users = List.of(userDto);
-        when(userService.getAllUsers()).thenReturn(users);
+    void getAllUsers_AsAdmin_ShouldReturnPaginatedUsers() {
+        when(userService.getAllUsers(any(PageRequest.class))).thenReturn(userPageResponse);
 
-        ResponseEntity<List<UserDto>> response = usersController.getAllUsers();
+        ResponseEntity<PageResponse<UserDto>> response = usersController.getAllUsers(0, 20);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().size());
-        verify(userService).getAllUsers();
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(userDto, response.getBody().getContent().get(0));
+        verify(userService).getAllUsers(any(PageRequest.class));
+    }
+
+    @Test
+    void getAllUsers_WithLargeSize_ShouldLimitTo50() {
+        when(userService.getAllUsers(any(PageRequest.class))).thenReturn(userPageResponse);
+
+        ResponseEntity<PageResponse<UserDto>> response = usersController.getAllUsers(0, 100);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(userService).getAllUsers(PageRequest.of(0, 50));
     }
 
     @Test

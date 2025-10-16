@@ -18,8 +18,4 @@ public class TokenBlacklistService {
     public boolean isBlacklisted(String token) {
         return blacklistedTokens.contains(token);
     }
-
-    public Set<String> getAll() {
-        return blacklistedTokens;
-    }
 }

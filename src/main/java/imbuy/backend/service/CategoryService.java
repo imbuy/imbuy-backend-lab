@@ -3,8 +3,11 @@ package imbuy.backend.service;
 import imbuy.backend.domain.Category;
 import imbuy.backend.dto.CategoryDto;
 import imbuy.backend.dto.CategoryTreeDto;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,10 +30,9 @@ public class CategoryService {
         return treeDto;
     }
 
-    public List<CategoryDto> getAllCategories() {
-        return categoryRepository.findAll().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+    public PageResponse<CategoryDto> getAllCategories(Pageable pageable) {
+        Page<Category> categories = categoryRepository.findAll(pageable);
+        return PageResponse.of(categories.map(this::mapToDto));
     }
 
     public CategoryDto getCategoryById(Long id) {

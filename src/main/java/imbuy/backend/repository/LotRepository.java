@@ -9,16 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
 @Repository
 public interface LotRepository extends JpaRepository<Lot, Long> {
     Page<Lot> findByStatus(LotStatus status, Pageable pageable);
-    Page<Lot> findByCategoryId(Long categoryId, Pageable pageable);
-    Page<Lot> findByOwnerId(Long ownerId, Pageable pageable);
-    Page<Lot> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 
     @Query("SELECT l FROM Lot l WHERE " +
             "(:title IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
@@ -31,14 +24,4 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
                             @Param("ownerId") Long ownerId,
                             Pageable pageable);
 
-    @Query("SELECT l FROM Lot l WHERE l.status = 'ACTIVE' AND l.endDate <= :now")
-    List<Lot> findExpiredActiveLots(@Param("now") LocalDateTime now);
-
-    @Query("SELECT l FROM Lot l WHERE l.status = 'ACTIVE' ORDER BY l.currentPrice DESC")
-    Page<Lot> findActiveLotsOrderByPrice(Pageable pageable);
-
-    Optional<Lot> findByIdAndStatus(Long id, LotStatus status);
-
-    @Query("SELECT COUNT(l) FROM Lot l WHERE l.category.id = :categoryId")
-    Long countByCategoryId(@Param("categoryId") Long categoryId);
 }
