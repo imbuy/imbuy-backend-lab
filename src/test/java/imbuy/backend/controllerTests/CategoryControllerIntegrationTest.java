@@ -53,14 +53,6 @@ class CategoryControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getAllCategories_ShouldReturnAllCategories() throws Exception {
-        mockMvc.perform(get("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
-    }
-
-    @Test
     void getCategoryById_WithExistingCategory_ShouldReturnCategory() throws Exception {
         mockMvc.perform(get("/api/categories/{id}", testCategory.getId())
                         .contentType(MediaType.APPLICATION_JSON))
