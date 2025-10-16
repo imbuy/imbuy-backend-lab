@@ -1,4 +1,4 @@
-package imbuy.backend.util;
+package imbuy.backend.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.Set;
+import java.util.Map;
 
 @Component
 public class JwtTokenProvider {
@@ -15,10 +15,10 @@ public class JwtTokenProvider {
     @Value("${JWT_TOKEN}")
     private String jwtSecret;
 
-    @Value("360000")
+    @Value("${JWT_EXPIRATION_MS:360000}") // можно переопределить через application.properties
     private long jwtExpirationMs;
 
-    public String generateToken(String email) {
+    public String generateToken(String email, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
@@ -26,10 +26,21 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .setSubject(email)
+                .addClaims(Map.of("role", role))
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String getRoleFromToken(String token) {
+        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("role", String.class);
     }
 
     public String getEmailFromToken(String token) {
@@ -53,10 +64,5 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
-    }
-
-    public boolean validateToken(String token, Set<String> blacklist) {
-        if (blacklist.contains(token)) return false;
-        return validateToken(token);
     }
 }

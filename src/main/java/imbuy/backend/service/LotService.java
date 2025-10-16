@@ -45,7 +45,7 @@ public class LotService {
             lots = lotRepository.findAll(pageable);
         }
 
-        return PageResponse.of(lots.map(lot -> convertToDto(lot, currentUserId)));
+        return PageResponse.of(lots.map(lot -> mapToDto(lot, currentUserId)));
     }
 
     @Transactional(readOnly = true)
@@ -58,14 +58,14 @@ public class LotService {
                 pageable
         );
 
-        return PageResponse.of(lots.map(lot -> convertToDto(lot, currentUserId)));
+        return PageResponse.of(lots.map(lot -> mapToDto(lot, currentUserId)));
     }
 
     @Transactional(readOnly = true)
     public LotDto getLotById(Long id, Long currentUserId) {
         Lot lot = lotRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
-        return convertToDto(lot, currentUserId);
+        return mapToDto(lot, currentUserId);
     }
 
     @Transactional
@@ -80,7 +80,7 @@ public class LotService {
         lot.setCurrentPrice(createLotDto.getStartPrice());
         lot.setBidStep(createLotDto.getBidStep());
         lot.setOwner(owner);
-        lot.setStatus(LotStatus.ACTIVE);
+        lot.setStatus(LotStatus.PENDING_APPROVAL);
 
         if (createLotDto.getCategoryId() != null) {
             Category category = categoryRepository.findById(createLotDto.getCategoryId())
@@ -91,8 +91,55 @@ public class LotService {
         lot.setStartDate(createLotDto.getStartDate() != null ? createLotDto.getStartDate() : LocalDateTime.now());
         lot.setEndDate(createLotDto.getEndDate());
 
-        lot = lotRepository.save(lot);
-        return convertToDto(lot, ownerId);
+        lotRepository.save(lot);
+        return mapToDto(lot, ownerId);
+    }
+
+    @Transactional
+    public LotDto approveLot(Long lotId, Long adminId) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        boolean isAdmin = admin.getRoles().contains("ADMIN");
+        if (!isAdmin) {
+            throw new RuntimeException("Only admin can approve lots");
+        }
+
+        Lot lot = lotRepository.findById(lotId)
+                .orElseThrow(() -> new RuntimeException("Lot not found"));
+
+        if (lot.getStatus() != LotStatus.PENDING_APPROVAL) {
+            throw new RuntimeException("Lot is not awaiting approval");
+        }
+
+        lot.setStatus(LotStatus.ACTIVE);
+        lotRepository.save(lot);
+
+        return mapToDto(lot, adminId);
+    }
+
+    @Transactional
+    public LotDto cancelLot(Long lotId, Long adminId, String reason) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        boolean isAdmin = admin.getRoles().contains("ADMIN");
+        if (!isAdmin) {
+            throw new RuntimeException("Only admin can cancel lots");
+        }
+
+        Lot lot = lotRepository.findById(lotId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
+
+        if (lot.getStatus() != LotStatus.PENDING_APPROVAL) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lot cannot be rejected");
+        }
+
+        lot.setStatus(LotStatus.CANCELLED);
+        LotDto dto = mapToDto(lot, adminId);
+        dto.setRejectionReason(reason);
+        lotRepository.save(lot);
+        return dto;
     }
 
     @Transactional
@@ -122,7 +169,7 @@ public class LotService {
         }
 
         lot = lotRepository.save(lot);
-        return convertToDto(lot, currentUserId);
+        return mapToDto(lot, currentUserId);
     }
 
     @Transactional
@@ -154,7 +201,7 @@ public class LotService {
         }
 
         lot = lotRepository.save(lot);
-        return convertToDto(lot, adminId);
+        return mapToDto(lot, adminId);
     }
 
     @Transactional
@@ -179,7 +226,7 @@ public class LotService {
                 filter.getCategoryId() != null || filter.getOwnerId() != null;
     }
 
-    private LotDto convertToDto(Lot lot, Long currentUserId) {
+    private LotDto mapToDto(Lot lot, Long currentUserId) {
         LotDto dto = new LotDto();
         dto.setId(lot.getId());
         dto.setTitle(lot.getTitle());
@@ -197,8 +244,13 @@ public class LotService {
         dto.setStartDate(lot.getStartDate());
         dto.setEndDate(lot.getEndDate());
         dto.setCreatedAt(lot.getCreatedAt());
-
         dto.setBidCount(Math.toIntExact(bidRepository.countByLotId(lot.getId())));
+
+        bidRepository.findTopByLotIdOrderByAmountDesc(lot.getId())
+                .ifPresent(bid -> {
+                    dto.setWinnerId(bid.getBidder().getId());
+                    dto.setWinnerUsername(bid.getBidder().getUsername());
+                });
 
         if (currentUserId != null) {
             dto.setIsFavorite(favoriteRepository.existsByUserIdAndLotId(currentUserId, lot.getId()));

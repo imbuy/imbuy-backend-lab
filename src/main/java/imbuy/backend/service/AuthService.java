@@ -4,11 +4,14 @@ import imbuy.backend.domain.User;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.LoginRequest;
 import imbuy.backend.dto.UserDto;
+import imbuy.backend.exception.UserNotFoundException;
 import imbuy.backend.repository.UserRepository;
-import imbuy.backend.util.JwtTokenProvider;
+import imbuy.backend.utils.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,18 +40,19 @@ public class AuthService {
         user.addRole("USER");
 
         userRepository.save(user);
-        return toDto(user);
+        return mapToDto(user);
     }
 
     public String login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        return jwtTokenProvider.generateToken(user.getEmail());
+        String role = user.getRoles().stream().findFirst().orElse("USER");
+        return jwtTokenProvider.generateToken(user.getEmail(), role);
     }
 
 
@@ -57,28 +61,28 @@ public class AuthService {
     }
 
     public List<UserDto> findAllUsers() {
-        return userRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public UserDto findById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return toDto(user);
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        return mapToDto(user);
     }
 
     public UserDto updateProfile(Long userId, RegisterRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         user.setUsername(request.getUsername());
         if(request.getPassword() != null && !request.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         userRepository.save(user);
-        return toDto(user);
+        return mapToDto(user);
     }
 
-    private UserDto toDto(User user) {
+    private UserDto mapToDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());

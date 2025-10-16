@@ -38,5 +38,8 @@ public class LotDto {
     private LocalDateTime createdAt;
     private Integer bidCount;
     private Boolean isFavorite;
+    private String rejectionReason;
+    private Long winnerId;
+    private String winnerUsername;
 }
 

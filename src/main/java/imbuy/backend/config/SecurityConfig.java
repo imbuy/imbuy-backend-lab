@@ -1,4 +1,3 @@
-// src/main/java/imbuy/backend/config/SecurityConfig.java
 package imbuy.backend.config;
 
 import lombok.RequiredArgsConstructor;
@@ -38,15 +37,22 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/lots/**",
-                                "/api/categories/**",
-                                "/api/users/*"
+                                "/api/categories/tree",
+                                "/api/categories",
+                                "/api/categories/{id}",
+                                "/api/users/{id}"
                         ).permitAll()
 
                         .requestMatchers("/api/bids/**").authenticated()
                         .requestMatchers("/api/users/profile").authenticated()
 
+                        .requestMatchers("/api/lots/*/approve").hasRole("ADMIN")
+                        .requestMatchers("/api/lots/*/cancel").hasRole("ADMIN")
+                        .requestMatchers("/api/categories/create").hasRole("ADMIN")
+                        .requestMatchers("/api/categories/update/{id}").hasRole("ADMIN")
+                        .requestMatchers("/api/categories/delete/{id}").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/users").hasRole("ADMIN")
+                        .requestMatchers("/api/users/all").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
