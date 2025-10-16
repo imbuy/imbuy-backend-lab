@@ -1,20 +1,20 @@
 package imbuy.backend.service;
 
 import imbuy.backend.domain.User;
-import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.LoginRequest;
+import imbuy.backend.dto.PageResponse;
+import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.exception.UserNotFoundException;
 import imbuy.backend.repository.UserRepository;
 import imbuy.backend.utils.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,8 +60,9 @@ public class AuthService {
         tokenBlacklistService.blacklistToken(token);
     }
 
-    public List<UserDto> findAllUsers() {
-        return userRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+    public PageResponse<UserDto> findAllUsers(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
+        return PageResponse.of(users.map(this::mapToDto));
     }
 
     public UserDto findById(Long id) {
@@ -75,7 +76,7 @@ public class AuthService {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         user.setUsername(request.getUsername());
-        if(request.getPassword() != null && !request.getPassword().isEmpty()) {
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         userRepository.save(user);
