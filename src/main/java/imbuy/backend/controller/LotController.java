@@ -41,7 +41,6 @@ public class LotController {
             try {
                 filter.setStatus(imbuy.backend.enums.LotStatus.valueOf(status.toUpperCase()));
             } catch (IllegalArgumentException e) {
-                // ignore invalid status
             }
         }
         filter.setCategoryId(categoryId);
@@ -71,7 +70,6 @@ public class LotController {
             try {
                 filter.setStatus(imbuy.backend.enums.LotStatus.valueOf(status.toUpperCase()));
             } catch (IllegalArgumentException e) {
-                // ignore invalid status
             }
         }
         filter.setCategoryId(categoryId);
@@ -82,9 +80,6 @@ public class LotController {
         PageResponse<LotDto> lots = lotService.getLotsWithTotalCount(filter, pageable, currentUserId);
 
         HttpHeaders headers = new HttpHeaders();
-        // В реальном приложении здесь нужно добавить общее количество в заголовок
-        // headers.add("X-Total-Count", String.valueOf(lots.getTotalElements()));
-
         return new ResponseEntity<>(lots, headers, HttpStatus.OK);
     }
 

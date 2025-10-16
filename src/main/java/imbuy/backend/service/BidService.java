@@ -58,7 +58,7 @@ public class BidService {
         lot.setCurrentPrice(createBidDto.getAmount());
         lotRepository.save(lot);
 
-        log.info("Пользователь #{} ({}) сделал ставку {} на лот #{} ('{}')",
+        log.info("User #{} ({}) make a bid {} on lot #{} ('{}')",
                 bidder.getId(), bidder.getUsername(), createBidDto.getAmount(), lot.getId(), lot.getTitle());
 
         return mapToDto(bid);
