@@ -1,0 +1,196 @@
+package imbuy.backend.serviceTests;
+
+import imbuy.backend.AbstractIntegrationTest;
+import imbuy.backend.domain.Bid;
+import imbuy.backend.domain.Lot;
+import imbuy.backend.domain.User;
+import imbuy.backend.enums.LotStatus;
+import imbuy.backend.repository.BidRepository;
+import imbuy.backend.repository.LotRepository;
+import imbuy.backend.repository.UserRepository;
+import imbuy.backend.service.LotScheduler;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest
+@TestPropertySource(properties = {
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.scheduling.enabled=true"
+})
+class LotSchedulerIntegrationTest extends AbstractIntegrationTest {
+
+    @Autowired
+    private LotScheduler lotScheduler;
+
+    @Autowired
+    private LotRepository lotRepository;
+
+    @Autowired
+    private BidRepository bidRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private User testUser1;
+    private User testUser2;
+    private Lot expiredLotWithBids;
+    private Lot expiredLotWithoutBids;
+    private Lot activeLot;
+    private Bid winningBid;
+
+    @BeforeEach
+    void setUp() {
+        // Очистка данных
+        bidRepository.deleteAll();
+        lotRepository.deleteAll();
+        userRepository.deleteAll();
+
+        // Создание тестовых пользователей
+        testUser1 = new User("user1@test.com", "password", "user1");
+        testUser2 = new User("user2@test.com", "password", "user2");
+        userRepository.saveAll(List.of(testUser1, testUser2));
+
+        // Создание лота с истекшим временем и ставками
+        expiredLotWithBids = Lot.builder()
+                .title("Expired Lot with Bids")
+                .description("Test description")
+                .startPrice(BigDecimal.valueOf(100))
+                .currentPrice(BigDecimal.valueOf(150))
+                .bidStep(BigDecimal.valueOf(10))
+                .owner(testUser1)
+                .status(LotStatus.ACTIVE)
+                .startDate(LocalDateTime.now().minusDays(2))
+                .endDate(LocalDateTime.now().minusHours(1)) // Истекший лот
+                .build();
+
+        expiredLotWithBids = lotRepository.save(expiredLotWithBids);
+
+        // Создание ставок
+        winningBid = Bid.builder()
+                .lot(expiredLotWithBids)
+                .bidder(testUser2)
+                .amount(BigDecimal.valueOf(150))
+                .build();
+
+        Bid lowerBid = Bid.builder()
+                .lot(expiredLotWithBids)
+                .bidder(testUser1)
+                .amount(BigDecimal.valueOf(120))
+                .build();
+
+        bidRepository.saveAll(List.of(winningBid, lowerBid));
+
+        // Создание лота с истекшим временем без ставок
+        expiredLotWithoutBids = Lot.builder()
+                .title("Expired Lot without Bids")
+                .description("Test description")
+                .startPrice(BigDecimal.valueOf(200))
+                .currentPrice(BigDecimal.valueOf(200))
+                .bidStep(BigDecimal.valueOf(20))
+                .owner(testUser1)
+                .status(LotStatus.ACTIVE)
+                .startDate(LocalDateTime.now().minusDays(1))
+                .endDate(LocalDateTime.now().minusMinutes(30)) // Истекший лот
+                .build();
+
+        expiredLotWithoutBids = lotRepository.save(expiredLotWithoutBids);
+
+        // Создание активного лота (не должен быть закрыт)
+        activeLot = Lot.builder()
+                .title("Active Lot")
+                .description("Test description")
+                .startPrice(BigDecimal.valueOf(300))
+                .currentPrice(BigDecimal.valueOf(300))
+                .bidStep(BigDecimal.valueOf(30))
+                .owner(testUser2)
+                .status(LotStatus.ACTIVE)
+                .startDate(LocalDateTime.now().minusHours(1))
+                .endDate(LocalDateTime.now().plusHours(1)) // Активный лот
+                .build();
+
+        activeLot = lotRepository.save(activeLot);
+    }
+
+    @Test
+    void closeExpiredLots_ShouldCloseExpiredLotsAndSetWinners() {
+        // Given - начальные условия установлены в setUp()
+
+        // When
+        lotScheduler.closeExpiredLots();
+
+        // Then
+        // Проверяем, что истекшие лоты закрыты
+        Lot closedLotWithBids = lotRepository.findById(expiredLotWithBids.getId()).orElseThrow();
+        Lot closedLotWithoutBids = lotRepository.findById(expiredLotWithoutBids.getId()).orElseThrow();
+        Lot stillActiveLot = lotRepository.findById(activeLot.getId()).orElseThrow();
+
+        // Проверяем статусы
+        assertThat(closedLotWithBids.getStatus()).isEqualTo(LotStatus.COMPLETED);
+        assertThat(closedLotWithoutBids.getStatus()).isEqualTo(LotStatus.COMPLETED);
+        assertThat(stillActiveLot.getStatus()).isEqualTo(LotStatus.ACTIVE);
+
+        // Проверяем победителя для лота со ставками
+        assertThat(closedLotWithBids.getWinner()).isNotNull();
+        assertThat(closedLotWithBids.getWinner().getId()).isEqualTo(testUser2.getId());
+
+        // Проверяем, что для лота без ставок победитель не назначен
+        assertThat(closedLotWithoutBids.getWinner()).isNull();
+    }
+
+    @Test
+    void closeExpiredLots_ShouldNotCloseActiveLots() {
+        // Given
+        // Активный лот уже создан в setUp()
+
+        // When
+        lotScheduler.closeExpiredLots();
+
+        // Then
+        Lot activeLotAfterScheduler = lotRepository.findById(activeLot.getId()).orElseThrow();
+        assertThat(activeLotAfterScheduler.getStatus()).isEqualTo(LotStatus.ACTIVE);
+        assertThat(activeLotAfterScheduler.getWinner()).isNull();
+    }
+
+    @Test
+    void closeExpiredLots_ShouldSetHighestBidderAsWinner() {
+        // Given
+        // Лот с несколькими ставками уже создан в setUp()
+
+        // When
+        lotScheduler.closeExpiredLots();
+
+        // Then
+        Lot closedLot = lotRepository.findById(expiredLotWithBids.getId()).orElseThrow();
+        assertThat(closedLot.getWinner()).isNotNull();
+        assertThat(closedLot.getWinner().getId()).isEqualTo(testUser2.getId());
+        assertThat(closedLot.getWinner().getUsername()).isEqualTo("user2");
+    }
+
+    private List<Lot> createMultipleExpiredLots(int count) {
+        List<Lot> lots = new java.util.ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            Lot lot = Lot.builder()
+                    .title("Expired Lot " + i)
+                    .description("Description " + i)
+                    .startPrice(BigDecimal.valueOf(100 + i))
+                    .currentPrice(BigDecimal.valueOf(100 + i))
+                    .bidStep(BigDecimal.valueOf(10))
+                    .owner(testUser1)
+                    .status(LotStatus.ACTIVE)
+                    .startDate(LocalDateTime.now().minusDays(1))
+                    .endDate(LocalDateTime.now().minusMinutes(1)) // Все истекли
+                    .build();
+            lots.add(lot);
+        }
+        return lotRepository.saveAll(lots);
+    }
+}
