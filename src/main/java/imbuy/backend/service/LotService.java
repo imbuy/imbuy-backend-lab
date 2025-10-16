@@ -102,7 +102,7 @@ public class LotService {
 
         boolean isAdmin = admin.getRoles().contains("ADMIN");
         if (!isAdmin) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found");
+            throw new RuntimeException("Only admin can approve lots");
         }
 
         Lot lot = lotRepository.findById(lotId)

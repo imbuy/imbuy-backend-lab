@@ -93,7 +93,7 @@ class LotControllerIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/lots")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createLotDto)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     @Test
