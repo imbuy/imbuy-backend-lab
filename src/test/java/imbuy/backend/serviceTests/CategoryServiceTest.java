@@ -3,6 +3,7 @@ package imbuy.backend.serviceTests;
 import imbuy.backend.domain.Category;
 import imbuy.backend.dto.CategoryDto;
 import imbuy.backend.dto.CategoryTreeDto;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.repository.CategoryRepository;
 import imbuy.backend.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,13 +60,36 @@ class CategoryServiceTest {
     }
 
     @Test
-    void getAllCategories_ShouldReturnAllCategories() {
-        when(categoryRepository.findAll()).thenReturn(List.of(parentCategory, childCategory));
+    void getAllCategories_WithPaginated_ShouldReturnPaginatedCategories() {
+        // Given
+        List<Category> categories = List.of(parentCategory, childCategory);
+        Page<Category> categoryPage = new PageImpl<>(categories, PageRequest.of(0, 20), 2);
+        when(categoryRepository.findAll(any(PageRequest.class))).thenReturn(categoryPage);
 
-        List<CategoryDto> result = categoryService.getAllCategories();
+        // When
+        PageResponse<CategoryDto> result = categoryService.getAllCategories(PageRequest.of(0, 20));
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getContent());
+        assertEquals(2, result.getContent().size());
+        assertEquals(0, result.getCurrentPage());
+        assertEquals(20, result.getPageSize());
+        verify(categoryRepository).findAll(any(PageRequest.class));
+    }
+
+    @Test
+    void getAllCategories_WithEmptyPage_ShouldReturnEmptyPage() {
+        Page<Category> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
+        when(categoryRepository.findAll(any(PageRequest.class))).thenReturn(emptyPage);
+
+        PageResponse<CategoryDto> result = categoryService.getAllCategories(PageRequest.of(0, 20));
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0, result.getCurrentPage());
+        assertEquals(20, result.getPageSize());
+        verify(categoryRepository).findAll(any(PageRequest.class));
     }
 
     @Test

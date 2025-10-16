@@ -3,6 +3,7 @@ package imbuy.backend.controllerTests;
 import imbuy.backend.controller.CategoryController;
 import imbuy.backend.dto.CategoryDto;
 import imbuy.backend.dto.CategoryTreeDto;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -17,6 +19,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +33,7 @@ class CategoryControllerTest {
 
     private CategoryDto categoryDto;
     private CategoryTreeDto categoryTreeDto;
+    private PageResponse<CategoryDto> categoryPageResponse;
 
     @BeforeEach
     void setUp() {
@@ -38,6 +42,13 @@ class CategoryControllerTest {
         categoryDto.setName("Electronics");
 
         categoryTreeDto = new CategoryTreeDto();
+
+        categoryPageResponse = new PageResponse<>();
+        categoryPageResponse.setContent(List.of(categoryDto));
+        categoryPageResponse.setCurrentPage(0);
+        categoryPageResponse.setPageSize(20);
+        categoryPageResponse.setHasNext(false);
+        categoryPageResponse.setHasPrevious(false);
     }
 
     @Test
@@ -53,17 +64,28 @@ class CategoryControllerTest {
     }
 
     @Test
-    void getAllCategories_ShouldReturnAllCategories() {
-        List<CategoryDto> categories = List.of(categoryDto);
-        when(categoryService.getAllCategories()).thenReturn(categories);
+    void getAllCategoriesPaginated_ShouldReturnPaginatedCategories() {
+        when(categoryService.getAllCategories(any(PageRequest.class))).thenReturn(categoryPageResponse);
 
-        ResponseEntity<List<CategoryDto>> response = categoryController.getAllCategories();
+        ResponseEntity<PageResponse<CategoryDto>> response = categoryController.getAllCategoriesPaginated(0, 20);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().size());
-        assertEquals("Electronics", response.getBody().get(0).getName());
-        verify(categoryService).getAllCategories();
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals("Electronics", response.getBody().getContent().get(0).getName());
+        verify(categoryService).getAllCategories(any(PageRequest.class));
+    }
+
+    @Test
+    void getAllCategoriesPaginated_WithLargeSize_ShouldLimitTo50() {
+        when(categoryService.getAllCategories(any(PageRequest.class))).thenReturn(categoryPageResponse);
+
+        ResponseEntity<PageResponse<CategoryDto>> response = categoryController.getAllCategoriesPaginated(0, 100);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(categoryService).getAllCategories(PageRequest.of(0, 50));
     }
 
     @Test

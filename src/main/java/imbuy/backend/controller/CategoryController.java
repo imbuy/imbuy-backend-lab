@@ -2,18 +2,19 @@ package imbuy.backend.controller;
 
 import imbuy.backend.dto.CategoryDto;
 import imbuy.backend.dto.CategoryTreeDto;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -32,9 +33,13 @@ public class CategoryController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all categories")
-    public ResponseEntity<List<CategoryDto>> getAllCategories() {
-        List<CategoryDto> categories = categoryService.getAllCategories();
+    @Operation(summary = "Get all categories with pagination")
+    public ResponseEntity<PageResponse<CategoryDto>> getAllCategoriesPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, Math.min(size, 50));
+        PageResponse<CategoryDto> categories = categoryService.getAllCategories(pageable);
         return ResponseEntity.ok(categories);
     }
 
