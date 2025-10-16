@@ -1,6 +1,7 @@
 package imbuy.backend.serviceTests;
 
 import imbuy.backend.domain.User;
+import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.exception.UserNotFoundException;
@@ -12,6 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -51,26 +56,73 @@ class UserServiceTest {
         testUser.setCreatedAt(testCreatedAt);
     }
 
+    @Test
+    void getAllUsers_WithUsers_ShouldReturnPaginatedUsers() {
+        List<User> users = List.of(testUser);
+        Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 20), 1);
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(userPage);
+
+        PageResponse<UserDto> result = userService.getAllUsers(PageRequest.of(0, 20));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getEmail()).isEqualTo("test@example.com");
+        assertThat(result.getCurrentPage()).isEqualTo(0);
+        assertThat(result.getPageSize()).isEqualTo(20);
+        assertThat(result.isHasNext()).isFalse();
+        assertThat(result.isHasPrevious()).isFalse();
+
+        verify(userRepository).findAll(any(Pageable.class));
+    }
 
     @Test
-    void getAllUsers_WithEmptyList_ShouldReturnEmptyList() {
-        // Given
-        when(userRepository.findAll()).thenReturn(List.of());
+    void getAllUsers_WithEmptyPage_ShouldReturnEmptyPage() {
+        Page<User> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
 
-        // When
-        List<UserDto> result = userService.getAllUsers();
+        PageResponse<UserDto> result = userService.getAllUsers(PageRequest.of(0, 20));
 
-        // Then
-        assertThat(result).isEmpty();
-        verify(userRepository).findAll();
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getCurrentPage()).isEqualTo(0);
+        assertThat(result.getPageSize()).isEqualTo(20);
+
+        verify(userRepository).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void getAllUsers_WithMultiplePages_ShouldReturnCorrectPaginationInfo() {
+        List<User> users = List.of(testUser);
+        Page<User> userPage = new PageImpl<>(users, PageRequest.of(1, 10), 25);
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(userPage);
+
+        PageResponse<UserDto> result = userService.getAllUsers(PageRequest.of(1, 10));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getCurrentPage()).isEqualTo(1);
+        assertThat(result.getPageSize()).isEqualTo(10);
+        verify(userRepository).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void getUserById_WithExistingUser_ShouldReturnUserDto() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        UserDto result = userService.getUserById(1L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getEmail()).isEqualTo("test@example.com");
+        assertThat(result.getUsername()).isEqualTo("testuser");
+
+        verify(userRepository).findById(1L);
     }
 
     @Test
     void getUserById_WithNonExistingUser_ShouldThrowException() {
-        // Given
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When & Then
         assertThatThrownBy(() -> userService.getUserById(999L))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("User not found");
@@ -80,7 +132,6 @@ class UserServiceTest {
 
     @Test
     void updateProfileById_WithUsernameAndPassword_ShouldUpdateBoth() {
-        // Given
         RegisterRequest updateRequest = new RegisterRequest();
         updateRequest.setUsername("newusername");
         updateRequest.setPassword("newpassword");
@@ -89,10 +140,8 @@ class UserServiceTest {
         when(passwordEncoder.encode("newpassword")).thenReturn("encodedNewPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When
         UserDto result = userService.updateProfileById(1L, updateRequest);
 
-        // Then
         assertThat(result.getUsername()).isEqualTo("newusername");
 
         verify(userRepository).findById(1L);
@@ -105,44 +154,36 @@ class UserServiceTest {
 
     @Test
     void updateProfileById_WithOnlyUsername_ShouldUpdateOnlyUsername() {
-        // Given
         RegisterRequest updateRequest = new RegisterRequest();
         updateRequest.setUsername("newusername");
-        // Password is null
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When
         UserDto result = userService.updateProfileById(1L, updateRequest);
 
-        // Then
         assertThat(result.getUsername()).isEqualTo("newusername");
 
         verify(userRepository).findById(1L);
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository).save(argThat(user ->
                 user.getUsername().equals("newusername") &&
-                        user.getPassword().equals("encodedPassword") // Password remains unchanged
+                        user.getPassword().equals("encodedPassword")
         ));
     }
 
     @Test
     void updateProfileById_WithOnlyPassword_ShouldUpdateOnlyPassword() {
-        // Given
         RegisterRequest updateRequest = new RegisterRequest();
         updateRequest.setPassword("newpassword");
-        // Username is null
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(passwordEncoder.encode("newpassword")).thenReturn("encodedNewPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When
         UserDto result = userService.updateProfileById(1L, updateRequest);
 
-        // Then
-        assertThat(result.getUsername()).isEqualTo("testuser"); // Username remains unchanged
+        assertThat(result.getUsername()).isEqualTo("testuser");
 
         verify(userRepository).findById(1L);
         verify(passwordEncoder).encode("newpassword");
@@ -154,17 +195,13 @@ class UserServiceTest {
 
     @Test
     void updateProfileById_WithEmptyRequest_ShouldNotChangeAnything() {
-        // Given
         RegisterRequest updateRequest = new RegisterRequest();
-        // Both username and password are null
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When
         UserDto result = userService.updateProfileById(1L, updateRequest);
 
-        // Then
         assertThat(result.getUsername()).isEqualTo("testuser");
 
         verify(userRepository).findById(1L);
@@ -177,13 +214,11 @@ class UserServiceTest {
 
     @Test
     void updateProfileById_WithNonExistingUser_ShouldThrowException() {
-        // Given
         RegisterRequest updateRequest = new RegisterRequest();
         updateRequest.setUsername("newusername");
 
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When & Then
         assertThatThrownBy(() -> userService.updateProfileById(999L, updateRequest))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("User not found");
@@ -194,7 +229,6 @@ class UserServiceTest {
 
     @Test
     void updateProfileById_ShouldEncodePassword() {
-        // Given
         RegisterRequest updateRequest = new RegisterRequest();
         updateRequest.setPassword("plainPassword");
 
@@ -202,10 +236,8 @@ class UserServiceTest {
         when(passwordEncoder.encode("plainPassword")).thenReturn("encodedPassword123");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When
         userService.updateProfileById(1L, updateRequest);
 
-        // Then
         verify(passwordEncoder).encode("plainPassword");
         verify(userRepository).save(argThat(user ->
                 user.getPassword().equals("encodedPassword123")
