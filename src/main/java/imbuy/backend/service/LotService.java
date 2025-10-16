@@ -189,22 +189,6 @@ public class LotService {
     }
 
     @Transactional
-    public LotDto updateLotStatus(Long id, LotStatus status, Long adminId) {
-        Lot lot = lotRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
-
-        // Здесь должна быть проверка прав администратора
-
-        lot.setStatus(status);
-        if (status == LotStatus.ACTIVE && lot.getStartDate() == null) {
-            lot.setStartDate(LocalDateTime.now());
-        }
-
-        lot = lotRepository.save(lot);
-        return mapToDto(lot, adminId);
-    }
-
-    @Transactional
     public void toggleFavorite(Long lotId, Long userId) {
         Lot lot = lotRepository.findById(lotId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
