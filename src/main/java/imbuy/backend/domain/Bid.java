@@ -3,9 +3,7 @@ package imbuy.backend.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -15,7 +13,9 @@ import java.time.LocalDateTime;
 @Table(name = "bids")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class Bid {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

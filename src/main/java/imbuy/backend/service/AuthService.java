@@ -87,7 +87,7 @@ public class AuthService {
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
         dto.setUsername(user.getUsername());
-        dto.setCreatedAt(user.getCreatedAt().toString());
+//        dto.setCreatedAt(user.getCreatedAt().toString());
         return dto;
     }
 }
