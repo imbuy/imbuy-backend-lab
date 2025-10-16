@@ -106,7 +106,7 @@ public class LotService {
         }
 
         Lot lot = lotRepository.findById(lotId)
-                .orElseThrow(() -> new RuntimeException("Lot not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
 
         if (lot.getStatus() != LotStatus.PENDING_APPROVAL) {
             throw new RuntimeException("Lot is not awaiting approval");
@@ -121,7 +121,7 @@ public class LotService {
     @Transactional
     public LotDto cancelLot(Long lotId, Long adminId, String reason) {
         User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Admin not found"));
 
         boolean isAdmin = admin.getRoles().contains("ADMIN");
         if (!isAdmin) {

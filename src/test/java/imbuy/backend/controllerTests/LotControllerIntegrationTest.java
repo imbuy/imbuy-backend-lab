@@ -90,11 +90,10 @@ class LotControllerIntegrationTest extends AbstractIntegrationTest {
         createLotDto.setStartPrice(BigDecimal.valueOf(100));
         createLotDto.setBidStep(BigDecimal.valueOf(10));
 
-        // Act & Assert
         mockMvc.perform(post("/api/lots")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createLotDto)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     @Test

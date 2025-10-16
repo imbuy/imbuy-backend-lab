@@ -30,7 +30,7 @@ public class LotScheduler {
 
         ZoneId zone = ZoneId.of("Europe/Warsaw");
         LocalDateTime now = LocalDateTime.now(zone);
-        log.info("Запуск шедулера закрытия лотов: {}", now);
+        log.info("Scheduler is working now: {}", now);
 
         int page = 0;
         int size = 100;
@@ -40,20 +40,20 @@ public class LotScheduler {
 
         do {
             activeLots = lotRepository.findByStatus(LotStatus.ACTIVE, PageRequest.of(page, size));
-            log.info("➡ Проверяется страница {} ({} активных лотов)", page, activeLots.getNumberOfElements());
+            log.info("Checking page {} ({} active lots)", page, activeLots.getNumberOfElements());
 
             for (Lot lot : activeLots.getContent()) {
                 if (lot.getEndDate() != null && lot.getEndDate().isBefore(now)) {
-                    log.info("Лот #{} ('{}') истёк в {} — закрываем...", lot.getId(), lot.getTitle(), lot.getEndDate());
+                    log.info("Lot #{} ('{}') ends in {} — close it...", lot.getId(), lot.getTitle(), lot.getEndDate());
 
                     lot.setStatus(LotStatus.COMPLETED);
 
                     bidRepository.findTopByLotIdOrderByAmountDesc(lot.getId())
                             .ifPresentOrElse(bid -> {
                                 lot.setWinner(bid.getBidder());
-                                log.info("Победитель: пользователь #{} ({}), ставка = {}",
+                                log.info("Winner: user #{} ({}), bid = {}",
                                         bid.getBidder().getId(), bid.getBidder().getUsername(), bid.getAmount());
-                            }, () -> log.info("⚠ Лот #{} не имеет ставок, победитель не назначен", lot.getId()));
+                            }, () -> log.info("Lot #{} has not bid, winner is not exist -", lot.getId()));
 
                     lotRepository.save(lot);
                     closedCount++;
@@ -63,6 +63,6 @@ public class LotScheduler {
             page++;
         } while (activeLots.hasNext());
 
-        log.info("Завершён проход по лотам. Закрыто {} лотов.", closedCount);
+        log.info("Scheduler has been worked. Closed {} lots.", closedCount);
     }
 }
