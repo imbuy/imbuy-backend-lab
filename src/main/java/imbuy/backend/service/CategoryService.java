@@ -4,6 +4,7 @@ import imbuy.backend.domain.Category;
 import imbuy.backend.dto.CategoryDto;
 import imbuy.backend.dto.CategoryTreeDto;
 import imbuy.backend.dto.PageResponse;
+import imbuy.backend.mapper.CategoryMapper;
 import imbuy.backend.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,25 +21,26 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
     public CategoryTreeDto getCategoryTree() {
         List<Category> rootCategories = categoryRepository.findRootCategoriesWithChildren();
         CategoryTreeDto treeDto = new CategoryTreeDto();
         treeDto.setCategories(rootCategories.stream()
-                .map(this::mapToDtoWithChildren)
+                .map(categoryMapper::toDtoWithChildren)
                 .collect(Collectors.toList()));
         return treeDto;
     }
 
     public PageResponse<CategoryDto> getAllCategories(Pageable pageable) {
         Page<Category> categories = categoryRepository.findAll(pageable);
-        return PageResponse.of(categories.map(this::mapToDto));
+        return PageResponse.of(categories.map(categoryMapper::toDto));
     }
 
     public CategoryDto getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
-        return mapToDto(category);
+        return categoryMapper.toDto(category);
     }
 
     public CategoryDto createCategory(CategoryDto categoryDto) {
@@ -56,7 +58,7 @@ public class CategoryService {
         }
 
         category = categoryRepository.save(category);
-        return mapToDto(category);
+        return categoryMapper.toDto(category);
     }
 
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
@@ -74,7 +76,7 @@ public class CategoryService {
         }
 
         category = categoryRepository.save(category);
-        return mapToDto(category);
+        return categoryMapper.toDto(category);
     }
 
     public void deleteCategory(Long id) {
@@ -90,24 +92,5 @@ public class CategoryService {
         }
 
         categoryRepository.delete(category);
-    }
-
-    private CategoryDto mapToDto(Category category) {
-        CategoryDto dto = new CategoryDto();
-        dto.setId(category.getId());
-        dto.setName(category.getName());
-        if (category.getParent() != null) {
-            dto.setParentId(category.getParent().getId());
-            dto.setParentName(category.getParent().getName());
-        }
-        return dto;
-    }
-
-    private CategoryDto mapToDtoWithChildren(Category category) {
-        CategoryDto dto = mapToDto(category);
-        dto.setChildren(category.getChildren().stream()
-                .map(this::mapToDtoWithChildren)
-                .collect(Collectors.toList()));
-        return dto;
     }
 }

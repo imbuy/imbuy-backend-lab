@@ -7,6 +7,7 @@ import imbuy.backend.dto.BidDto;
 import imbuy.backend.dto.CreateBidDto;
 import imbuy.backend.dto.PageResponse;
 import imbuy.backend.enums.LotStatus;
+import imbuy.backend.mapper.BidMapper;
 import imbuy.backend.repository.BidRepository;
 import imbuy.backend.repository.LotRepository;
 import imbuy.backend.repository.UserRepository;
@@ -30,6 +31,7 @@ public class BidService {
     private final BidRepository bidRepository;
     private final LotRepository lotRepository;
     private final UserRepository userRepository;
+    private final BidMapper bidMapper;
 
 
     @Transactional(readOnly = true)
@@ -39,7 +41,7 @@ public class BidService {
         }
 
         Page<Bid> bids = bidRepository.findByLotIdOrderByCreatedAtDesc(lotId, pageable);
-        return PageResponse.of(bids.map(this::mapToDto));
+        return PageResponse.of(bids.map(bidMapper::toDto));
     }
 
     @Transactional
@@ -61,7 +63,7 @@ public class BidService {
         log.info("User #{} ({}) make a bid {} on lot #{} ('{}')",
                 bidder.getId(), bidder.getUsername(), createBidDto.getAmount(), lot.getId(), lot.getTitle());
 
-        return mapToDto(bid);
+        return bidMapper.toDto(bid);
     }
 
     private void validateBid(Lot lot, BigDecimal amount, Long bidderId) {
@@ -89,17 +91,7 @@ public class BidService {
     @Transactional(readOnly = true)
     public BidDto getWinningBid(Long lotId) {
         return bidRepository.findTopByLotIdOrderByAmountDesc(lotId)
-                .map(this::mapToDto)
+                .map(bidMapper::toDto)
                 .orElse(null);
-    }
-
-    private BidDto mapToDto(Bid bid) {
-        BidDto dto = new BidDto();
-        dto.setId(bid.getId());
-        dto.setAmount(bid.getAmount());
-        dto.setBidderId(bid.getBidder().getId());
-        dto.setBidderUsername(bid.getBidder().getUsername());
-        dto.setCreatedAt(bid.getCreatedAt());
-        return dto;
     }
 }

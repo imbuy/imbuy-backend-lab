@@ -6,6 +6,7 @@ import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.exception.UserNotFoundException;
+import imbuy.backend.mapper.UserMapper;
 import imbuy.backend.repository.UserRepository;
 import imbuy.backend.utils.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
+    private final UserMapper userMapper;
 
 
     public UserDto register(RegisterRequest request) {
@@ -40,7 +42,7 @@ public class AuthService {
         user.addRole("USER");
 
         userRepository.save(user);
-        return mapToDto(user);
+        return userMapper.toDto(user);
     }
 
     public String login(LoginRequest request) {
@@ -62,13 +64,13 @@ public class AuthService {
 
     public PageResponse<UserDto> findAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
-        return PageResponse.of(users.map(this::mapToDto));
+        return PageResponse.of(users.map(userMapper::toDto));
     }
 
     public UserDto findById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        return mapToDto(user);
+        return userMapper.toDto(user);
     }
 
     public UserDto updateProfile(Long userId, RegisterRequest request) {
@@ -80,15 +82,6 @@ public class AuthService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         userRepository.save(user);
-        return mapToDto(user);
-    }
-
-    private UserDto mapToDto(User user) {
-        UserDto dto = new UserDto();
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setUsername(user.getUsername());
-//        dto.setCreatedAt(user.getCreatedAt().toString());
-        return dto;
+        return userMapper.toDto(user);
     }
 }

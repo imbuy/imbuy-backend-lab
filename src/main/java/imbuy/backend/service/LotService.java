@@ -5,6 +5,7 @@ import imbuy.backend.domain.Lot;
 import imbuy.backend.domain.User;
 import imbuy.backend.dto.*;
 import imbuy.backend.enums.LotStatus;
+import imbuy.backend.mapper.LotMapper;
 import imbuy.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ public class LotService {
     private final BidRepository bidRepository;
     private final FavoriteRepository favoriteRepository;
     private final CategoryRepository categoryRepository;
+    private final LotMapper lotMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<LotDto> getLots(LotFilterDto filter, Pageable pageable, Long currentUserId) {
@@ -45,7 +47,7 @@ public class LotService {
             lots = lotRepository.findAll(pageable);
         }
 
-        return PageResponse.of(lots.map(lot -> mapToDto(lot, currentUserId)));
+        return PageResponse.of(lots.map(lot -> lotMapper.toDto(lot, currentUserId)));
     }
 
     @Transactional(readOnly = true)
@@ -58,14 +60,14 @@ public class LotService {
                 pageable
         );
 
-        return PageResponse.of(lots.map(lot -> mapToDto(lot, currentUserId)));
+        return PageResponse.of(lots.map(lot -> lotMapper.toDto(lot, currentUserId)));
     }
 
     @Transactional(readOnly = true)
     public LotDto getLotById(Long id, Long currentUserId) {
         Lot lot = lotRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
-        return mapToDto(lot, currentUserId);
+        return lotMapper.toDto(lot, currentUserId);
     }
 
     @Transactional
@@ -92,7 +94,7 @@ public class LotService {
         lot.setEndDate(createLotDto.getEndDate());
 
         lotRepository.save(lot);
-        return mapToDto(lot, ownerId);
+        return lotMapper.toDto(lot, ownerId);
     }
 
     @Transactional
@@ -115,13 +117,13 @@ public class LotService {
         lot.setStatus(LotStatus.ACTIVE);
         lotRepository.save(lot);
 
-        return mapToDto(lot, adminId);
+        return lotMapper.toDto(lot, adminId);
     }
 
     @Transactional
     public LotDto cancelLot(Long lotId, Long adminId, String reason) {
         User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Admin not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Admin not found"));
 
         boolean isAdmin = admin.getRoles().contains("ADMIN");
         if (!isAdmin) {
@@ -136,7 +138,7 @@ public class LotService {
         }
 
         lot.setStatus(LotStatus.CANCELLED);
-        LotDto dto = mapToDto(lot, adminId);
+        LotDto dto = lotMapper.toDto(lot, adminId);
         dto.setRejectionReason(reason);
         lotRepository.save(lot);
         return dto;
@@ -169,7 +171,7 @@ public class LotService {
         }
 
         lot = lotRepository.save(lot);
-        return mapToDto(lot, currentUserId);
+        return lotMapper.toDto(lot, currentUserId);
     }
 
     @Transactional
@@ -210,36 +212,5 @@ public class LotService {
                 filter.getCategoryId() != null || filter.getOwnerId() != null;
     }
 
-    private LotDto mapToDto(Lot lot, Long currentUserId) {
-        LotDto dto = new LotDto();
-        dto.setId(lot.getId());
-        dto.setTitle(lot.getTitle());
-        dto.setDescription(lot.getDescription());
-        dto.setStartPrice(lot.getStartPrice());
-        dto.setCurrentPrice(lot.getCurrentPrice());
-        dto.setBidStep(lot.getBidStep());
-        dto.setOwnerId(lot.getOwner().getId());
-        dto.setOwnerUsername(lot.getOwner().getUsername());
-        if (lot.getCategory() != null) {
-            dto.setCategoryId(lot.getCategory().getId());
-            dto.setCategoryName(lot.getCategory().getName());
-        }
-        dto.setStatus(lot.getStatus());
-        dto.setStartDate(lot.getStartDate());
-        dto.setEndDate(lot.getEndDate());
-        dto.setCreatedAt(lot.getCreatedAt());
-        dto.setBidCount(Math.toIntExact(bidRepository.countByLotId(lot.getId())));
 
-        bidRepository.findTopByLotIdOrderByAmountDesc(lot.getId())
-                .ifPresent(bid -> {
-                    dto.setWinnerId(bid.getBidder().getId());
-                    dto.setWinnerUsername(bid.getBidder().getUsername());
-                });
-
-        if (currentUserId != null) {
-            dto.setIsFavorite(favoriteRepository.existsByUserIdAndLotId(currentUserId, lot.getId()));
-        }
-
-        return dto;
-    }
 }

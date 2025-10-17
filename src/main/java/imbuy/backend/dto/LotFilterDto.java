@@ -1,13 +1,12 @@
 package imbuy.backend.dto;
 
 import imbuy.backend.enums.LotStatus;
-import lombok.Data;
 
-@Data
-public class LotFilterDto {
-    private String title;
-    private LotStatus status;
-    private Long categoryId;
-    private Long ownerId;
-    private Boolean activeOnly = false;
+public record LotFilterDto(
+        String title,
+        LotStatus status,
+        Long categoryId,
+        Long ownerId,
+        Boolean activeOnly
+) {
 }
