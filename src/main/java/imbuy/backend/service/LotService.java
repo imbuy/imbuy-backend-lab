@@ -35,13 +35,13 @@ public class LotService {
 
         if (filter != null && hasFilters(filter)) {
             lots = lotRepository.findByFilters(
-                    filter.getTitle(),
-                    filter.getStatus(),
-                    filter.getCategoryId(),
-                    filter.getOwnerId(),
+                    filter.title(),
+                    filter.status(),
+                    filter.categoryId(),
+                    filter.ownerId(),
                     pageable
             );
-        } else if (filter != null && Boolean.TRUE.equals(filter.getActiveOnly())) {
+        } else if (filter != null && Boolean.TRUE.equals(filter.activeOnly())) {
             lots = lotRepository.findByStatus(LotStatus.ACTIVE, pageable);
         } else {
             lots = lotRepository.findAll(pageable);
@@ -53,10 +53,10 @@ public class LotService {
     @Transactional(readOnly = true)
     public PageResponse<LotDto> getLotsWithTotalCount(LotFilterDto filter, Pageable pageable, Long currentUserId) {
         Page<Lot> lots = lotRepository.findByFilters(
-                filter != null ? filter.getTitle() : null,
-                filter != null ? filter.getStatus() : null,
-                filter != null ? filter.getCategoryId() : null,
-                filter != null ? filter.getOwnerId() : null,
+                filter != null ? filter.title() : null,
+                filter != null ? filter.status() : null,
+                filter != null ? filter.categoryId() : null,
+                filter != null ? filter.ownerId() : null,
                 pageable
         );
 
@@ -76,22 +76,22 @@ public class LotService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         Lot lot = new Lot();
-        lot.setTitle(createLotDto.getTitle());
-        lot.setDescription(createLotDto.getDescription());
-        lot.setStartPrice(createLotDto.getStartPrice());
-        lot.setCurrentPrice(createLotDto.getStartPrice());
-        lot.setBidStep(createLotDto.getBidStep());
+        lot.setTitle(createLotDto.title());
+        lot.setDescription(createLotDto.description());
+        lot.setStartPrice(createLotDto.startPrice());
+        lot.setCurrentPrice(createLotDto.startPrice());
+        lot.setBidStep(createLotDto.bidStep());
         lot.setOwner(owner);
         lot.setStatus(LotStatus.PENDING_APPROVAL);
 
-        if (createLotDto.getCategoryId() != null) {
-            Category category = categoryRepository.findById(createLotDto.getCategoryId())
+        if (createLotDto.categoryId() != null) {
+            Category category = categoryRepository.findById(createLotDto.categoryId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
             lot.setCategory(category);
         }
 
-        lot.setStartDate(createLotDto.getStartDate() != null ? createLotDto.getStartDate() : LocalDateTime.now());
-        lot.setEndDate(createLotDto.getEndDate());
+        lot.setStartDate(createLotDto.startDate() != null ? createLotDto.startDate() : LocalDateTime.now());
+        lot.setEndDate(createLotDto.endDate());
 
         lotRepository.save(lot);
         return lotMapper.toDto(lot, ownerId);
@@ -139,7 +139,7 @@ public class LotService {
 
         lot.setStatus(LotStatus.CANCELLED);
         LotDto dto = lotMapper.toDto(lot, adminId);
-        dto.setRejectionReason(reason);
+        dto.rejectionReason();
         lotRepository.save(lot);
         return dto;
     }
@@ -157,17 +157,17 @@ public class LotService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot update lot in current status");
         }
 
-        if (updateLotDto.getTitle() != null) {
-            lot.setTitle(updateLotDto.getTitle());
+        if (updateLotDto.title() != null) {
+            lot.setTitle(updateLotDto.title());
         }
-        if (updateLotDto.getDescription() != null) {
-            lot.setDescription(updateLotDto.getDescription());
+        if (updateLotDto.description() != null) {
+            lot.setDescription(updateLotDto.description());
         }
-        if (updateLotDto.getBidStep() != null) {
-            lot.setBidStep(updateLotDto.getBidStep());
+        if (updateLotDto.bidStep() != null) {
+            lot.setBidStep(updateLotDto.bidStep());
         }
-        if (updateLotDto.getEndDate() != null) {
-            lot.setEndDate(updateLotDto.getEndDate());
+        if (updateLotDto.endDate() != null) {
+            lot.setEndDate(updateLotDto.endDate());
         }
 
         lot = lotRepository.save(lot);
@@ -208,8 +208,8 @@ public class LotService {
     }
 
     private boolean hasFilters(LotFilterDto filter) {
-        return filter.getTitle() != null || filter.getStatus() != null ||
-                filter.getCategoryId() != null || filter.getOwnerId() != null;
+        return filter.title() != null || filter.status() != null ||
+                filter.categoryId() != null || filter.ownerId() != null;
     }
 
 

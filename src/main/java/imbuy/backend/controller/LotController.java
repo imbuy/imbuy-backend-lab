@@ -1,6 +1,7 @@
 package imbuy.backend.controller;
 
 import imbuy.backend.dto.*;
+import imbuy.backend.enums.LotStatus;
 import imbuy.backend.service.LotService;
 import imbuy.backend.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,17 +36,7 @@ public class LotController {
             @RequestParam(required = false) Long ownerId,
             @RequestParam(required = false) Boolean activeOnly) {
 
-        LotFilterDto filter = new LotFilterDto();
-        filter.setTitle(title);
-        if (status != null) {
-            try {
-                filter.setStatus(imbuy.backend.enums.LotStatus.valueOf(status.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-            }
-        }
-        filter.setCategoryId(categoryId);
-        filter.setOwnerId(ownerId);
-        filter.setActiveOnly(activeOnly);
+        LotFilterDto filter = new LotFilterDto(title, LotStatus.valueOf(status.toUpperCase()), categoryId, ownerId, activeOnly);
 
         Pageable pageable = PageRequest.of(0, 20);
         Long currentUserId = securityUtils.isAuthenticated() ? securityUtils.getCurrentUserId() : null;
@@ -64,16 +55,7 @@ public class LotController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        LotFilterDto filter = new LotFilterDto();
-        filter.setTitle(title);
-        if (status != null) {
-            try {
-                filter.setStatus(imbuy.backend.enums.LotStatus.valueOf(status.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-            }
-        }
-        filter.setCategoryId(categoryId);
-        filter.setOwnerId(ownerId);
+        LotFilterDto filter = new LotFilterDto(title, LotStatus.valueOf(status.toUpperCase()), categoryId, ownerId, false);
 
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
         Long currentUserId = securityUtils.isAuthenticated() ? securityUtils.getCurrentUserId() : null;
@@ -113,7 +95,7 @@ public class LotController {
     @Operation(summary = "Cancelled lot (Admin only)")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LotDto> cancelLot(@PathVariable Long id,
-                                             @RequestParam(required = false) String reason) {
+                                            @RequestParam(required = false) String reason) {
         Long adminId = securityUtils.getCurrentUserId();
         LotDto cancelledLot = lotService.cancelLot(id, adminId, reason);
         return ResponseEntity.ok(cancelledLot);

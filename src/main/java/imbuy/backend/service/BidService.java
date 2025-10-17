@@ -52,16 +52,16 @@ public class BidService {
         User bidder = userRepository.findById(bidderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        validateBid(lot, createBidDto.getAmount(), bidderId);
+        validateBid(lot, createBidDto.amount(), bidderId);
 
-        Bid bid = new Bid(lot, bidder, createBidDto.getAmount());
+        Bid bid = new Bid(lot, bidder, createBidDto.amount());
         bid = bidRepository.save(bid);
 
-        lot.setCurrentPrice(createBidDto.getAmount());
+        lot.setCurrentPrice(createBidDto.amount());
         lotRepository.save(lot);
 
         log.info("User #{} ({}) make a bid {} on lot #{} ('{}')",
-                bidder.getId(), bidder.getUsername(), createBidDto.getAmount(), lot.getId(), lot.getTitle());
+                bidder.getId(), bidder.getUsername(), createBidDto.amount(), lot.getId(), lot.getTitle());
 
         return bidMapper.toDto(bid);
     }

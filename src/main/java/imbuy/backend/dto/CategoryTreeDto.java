@@ -1,9 +1,10 @@
 package imbuy.backend.dto;
 
+import lombok.Data;
+
 import java.util.List;
 
-
-public record CategoryTreeDto(
-        List<CategoryDto> categories
-) {
+@Data
+public class CategoryTreeDto {
+    private List<CategoryDto> categories;
 }
