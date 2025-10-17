@@ -19,10 +19,10 @@ public class JwtTokenProvider {
     @Value("${JWT_TOKEN}")
     private String jwtSecret;
 
-    @Value("${JWT_EXPIRATION_MS:360000}") // можно переопределить через application.properties
+    @Value("${JWT_EXPIRATION_MS:360000}")
     private long jwtExpirationMs;
 
-    public String generateToken(String email, String role) {
+    public String generateToken(String email) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
@@ -30,21 +30,10 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .setSubject(email)
-                .addClaims(Map.of("role", role))
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-    }
-
-    public String getRoleFromToken(String token) {
-        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.get("role", String.class);
     }
 
     public String getEmailFromToken(String token) {

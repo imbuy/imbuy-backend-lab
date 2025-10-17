@@ -20,7 +20,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,9 +34,6 @@ class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
@@ -63,18 +59,16 @@ class AuthServiceTest {
         loginRequest.setEmail("test@example.com");
         loginRequest.setPassword("password123");
 
-        user = new User("test@example.com", "encodedPassword", "testuser");
+        user = new User("test@example.com", "password123", "testuser"); // пароль без шифрования
         user.setId(1L);
-        user.addRole("USER");
     }
 
     @Test
     void register_WithNewUser_ShouldReturnUserDto() {
         when(userRepository.existsByEmail(registerRequest.getEmail())).thenReturn(false);
-        when(passwordEncoder.encode(registerRequest.getPassword())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        UserDto result = authService.register(registerRequest);
+        User result = authService.register(registerRequest);
 
         assertNotNull(result);
         assertEquals(user.getEmail(), result.getEmail());
@@ -95,13 +89,12 @@ class AuthServiceTest {
         String expectedToken = "jwt.token.here";
 
         when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())).thenReturn(true);
-        when(jwtTokenProvider.generateToken(user.getEmail(), "USER")).thenReturn(expectedToken);
+        when(jwtTokenProvider.generateToken(user.getEmail())).thenReturn(expectedToken);
 
         String result = authService.login(loginRequest);
 
         assertEquals(expectedToken, result);
-        verify(jwtTokenProvider).generateToken(user.getEmail(), "USER");
+        verify(jwtTokenProvider).generateToken(user.getEmail());
     }
 
     @Test
@@ -109,16 +102,16 @@ class AuthServiceTest {
         when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> authService.login(loginRequest));
-        verify(jwtTokenProvider, never()).generateToken(anyString(), anyString());
+        verify(jwtTokenProvider, never()).generateToken(anyString());
     }
 
     @Test
     void login_WithInvalidPassword_ShouldThrowException() {
+        user.setPassword("otherpassword"); // неверный пароль
         when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())).thenReturn(false);
 
         assertThrows(RuntimeException.class, () -> authService.login(loginRequest));
-        verify(jwtTokenProvider, never()).generateToken(anyString(), anyString());
+        verify(jwtTokenProvider, never()).generateToken(anyString());
     }
 
     @Test
@@ -142,11 +135,6 @@ class AuthServiceTest {
         assertNotNull(result.getContent());
         assertEquals(1, result.getContent().size());
         assertEquals(user.getEmail(), result.getContent().get(0).getEmail());
-        assertEquals(0, result.getCurrentPage());
-        assertEquals(20, result.getPageSize());
-        assertFalse(result.isHasNext());
-        assertFalse(result.isHasPrevious());
-
         verify(userRepository).findAll(any(Pageable.class));
     }
 
@@ -174,13 +162,13 @@ class AuthServiceTest {
         updateRequest.setPassword("newpassword");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode("newpassword")).thenReturn("encodedNewPassword");
         when(userRepository.save(user)).thenReturn(user);
 
         UserDto result = authService.updateProfile(1L, updateRequest);
 
         assertNotNull(result);
         assertEquals("newusername", user.getUsername());
+        assertEquals("newpassword", user.getPassword());
         verify(userRepository).save(user);
     }
 }

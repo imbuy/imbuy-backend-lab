@@ -6,10 +6,7 @@ import imbuy.backend.domain.User;
 import imbuy.backend.dto.BidDto;
 import imbuy.backend.dto.CreateBidDto;
 import imbuy.backend.dto.PageResponse;
-import imbuy.backend.enums.LotStatus;
 import imbuy.backend.repository.BidRepository;
-import imbuy.backend.repository.LotRepository;
-import imbuy.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,34 +18,27 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
+import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BidService {
 
     private final BidRepository bidRepository;
-    private final LotRepository lotRepository;
-    private final UserRepository userRepository;
-
+    private final LotService lotService;
+    private final AuthService userService;
 
     @Transactional(readOnly = true)
     public PageResponse<BidDto> getBidsByLotId(Long lotId, Pageable pageable) {
-        if (!lotRepository.existsById(lotId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found");
-        }
-
-        Page<Bid> bids = bidRepository.findByLotIdOrderByCreatedAtDesc(lotId, pageable);
+        Lot lot = lotService.getLotEntityById(lotId);
+        Page<Bid> bids = bidRepository.findByLotIdOrderByCreatedAtDesc(lot.getId(), pageable);
         return PageResponse.of(bids.map(this::mapToDto));
     }
 
     @Transactional
     public BidDto placeBid(Long lotId, CreateBidDto createBidDto, Long bidderId) {
-        Lot lot = lotRepository.findById(lotId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
-
-        User bidder = userRepository.findById(bidderId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        Lot lot = lotService.getLotEntityById(lotId);
+        User bidder = userService.getUserById(bidderId);
 
         validateBid(lot, createBidDto.getAmount(), bidderId);
 
@@ -56,9 +46,9 @@ public class BidService {
         bid = bidRepository.save(bid);
 
         lot.setCurrentPrice(createBidDto.getAmount());
-        lotRepository.save(lot);
+        lotService.updateLotCurrentPrice(lot);
 
-        log.info("User #{} ({}) make a bid {} on lot #{} ('{}')",
+        log.info("User #{} ({}) placed bid {} on lot #{} ('{}')",
                 bidder.getId(), bidder.getUsername(), createBidDto.getAmount(), lot.getId(), lot.getTitle());
 
         return mapToDto(bid);
@@ -67,7 +57,7 @@ public class BidService {
     private void validateBid(Lot lot, BigDecimal amount, Long bidderId) {
         LocalDateTime now = LocalDateTime.now();
 
-        if (lot.getStatus() != LotStatus.ACTIVE) {
+        if (lot.getStatus() != imbuy.backend.enums.LotStatus.ACTIVE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lot is not active");
         }
 
@@ -102,4 +92,13 @@ public class BidService {
         dto.setCreatedAt(bid.getCreatedAt());
         return dto;
     }
+
+    public int countBidsByLot(Long lotId) {
+        return Math.toIntExact(bidRepository.countByLotId(lotId));
+    }
+
+    public Optional<Bid> getHighestBidByLot(Long lotId) {
+        return bidRepository.findTopByLotIdOrderByAmountDesc(lotId);
+    }
 }
+

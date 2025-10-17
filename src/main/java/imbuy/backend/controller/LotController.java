@@ -4,23 +4,19 @@ import imbuy.backend.dto.*;
 import imbuy.backend.service.LotService;
 import imbuy.backend.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/lots")
 @RequiredArgsConstructor
 @Tag(name = "Lots", description = "Lot management APIs")
-@SecurityRequirement(name = "bearerAuth")
 public class LotController {
 
     private final LotService lotService;
@@ -29,6 +25,7 @@ public class LotController {
     @GetMapping
     @Operation(summary = "Get all lots with pagination and filtering")
     public ResponseEntity<PageResponse<LotDto>> getLots(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long categoryId,
@@ -48,103 +45,85 @@ public class LotController {
         filter.setActiveOnly(activeOnly);
 
         Pageable pageable = PageRequest.of(0, 20);
-        Long currentUserId = securityUtils.isAuthenticated() ? securityUtils.getCurrentUserId() : null;
-        PageResponse<LotDto> lots = lotService.getLots(filter, pageable, currentUserId);
-
-        return ResponseEntity.ok(lots);
-    }
-
-    @GetMapping("/with-total")
-    @Operation(summary = "Get all lots with total count in header")
-    public ResponseEntity<PageResponse<LotDto>> getLotsWithTotalCount(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Long ownerId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
-        LotFilterDto filter = new LotFilterDto();
-        filter.setTitle(title);
-        if (status != null) {
-            try {
-                filter.setStatus(imbuy.backend.enums.LotStatus.valueOf(status.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-            }
+        Long currentUserId = null;
+        if (authHeader != null) {
+            String token = authHeader.replace("Bearer ", "");
+            currentUserId = securityUtils.getCurrentUserId(token);
         }
-        filter.setCategoryId(categoryId);
-        filter.setOwnerId(ownerId);
 
-        Pageable pageable = PageRequest.of(page, Math.min(size, 50));
-        Long currentUserId = securityUtils.isAuthenticated() ? securityUtils.getCurrentUserId() : null;
-        PageResponse<LotDto> lots = lotService.getLotsWithTotalCount(filter, pageable, currentUserId);
-
-        HttpHeaders headers = new HttpHeaders();
-        return new ResponseEntity<>(lots, headers, HttpStatus.OK);
+        PageResponse<LotDto> lots = lotService.getLots(filter, pageable, currentUserId);
+        return ResponseEntity.ok(lots);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get lot by ID")
-    public ResponseEntity<LotDto> getLotById(@PathVariable Long id) {
-        Long currentUserId = securityUtils.isAuthenticated() ? securityUtils.getCurrentUserId() : null;
-        LotDto lot = lotService.getLotById(id, currentUserId);
+    public ResponseEntity<LotDto> getLotById(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        LotDto lot = lotService.getLotById(id);
         return ResponseEntity.ok(lot);
     }
 
     @PostMapping
     @Operation(summary = "Create a new lot")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<LotDto> createLot(@Valid @RequestBody CreateLotDto createLotDto) {
-        Long currentUserId = securityUtils.getCurrentUserId();
+    public ResponseEntity<LotDto> createLot(
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody CreateLotDto createLotDto) {
+
+        String token = authHeader.replace("Bearer ", "");
+        Long currentUserId = securityUtils.getCurrentUserId(token);
         LotDto lot = lotService.createLot(createLotDto, currentUserId);
         return new ResponseEntity<>(lot, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}/approve")
     @Operation(summary = "Approve lot (Admin only)")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LotDto> approveLot(@PathVariable Long id) {
-        Long adminId = securityUtils.getCurrentUserId();
+    public ResponseEntity<LotDto> approveLot(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id) {
+
+        String token = authHeader.replace("Bearer ", "");
+        Long adminId = securityUtils.getCurrentUserId(token);
         LotDto approvedLot = lotService.approveLot(id, adminId);
         return ResponseEntity.ok(approvedLot);
     }
 
     @PutMapping("/{id}/cancel")
-    @Operation(summary = "Cancelled lot (Admin only)")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LotDto> cancelLot(@PathVariable Long id,
-                                             @RequestParam(required = false) String reason) {
-        Long adminId = securityUtils.getCurrentUserId();
+    @Operation(summary = "Cancel lot (Admin only)")
+    public ResponseEntity<LotDto> cancelLot(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason) {
+
+        String token = authHeader.replace("Bearer ", "");
+        Long adminId = securityUtils.getCurrentUserId(token);
         LotDto cancelledLot = lotService.cancelLot(id, adminId, reason);
         return ResponseEntity.ok(cancelledLot);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update lot")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<LotDto> updateLot(
+            @RequestHeader("Authorization") String authHeader,
             @PathVariable Long id,
             @Valid @RequestBody UpdateLotDto updateLotDto) {
-        Long currentUserId = securityUtils.getCurrentUserId();
+
+        String token = authHeader.replace("Bearer ", "");
+        Long currentUserId = securityUtils.getCurrentUserId(token);
         LotDto lot = lotService.updateLot(id, updateLotDto, currentUserId);
         return ResponseEntity.ok(lot);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete lot")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> deleteLot(@PathVariable Long id) {
-        Long currentUserId = securityUtils.getCurrentUserId();
+    public ResponseEntity<Void> deleteLot(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id) {
+
+        String token = authHeader.replace("Bearer ", "");
+        Long currentUserId = securityUtils.getCurrentUserId(token);
         lotService.deleteLot(id, currentUserId);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/favorite")
-    @Operation(summary = "Toggle favorite status for lot")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> toggleFavorite(@PathVariable Long id) {
-        Long currentUserId = securityUtils.getCurrentUserId();
-        lotService.toggleFavorite(id, currentUserId);
-        return ResponseEntity.ok().build();
     }
 }

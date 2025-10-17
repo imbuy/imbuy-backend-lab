@@ -5,7 +5,6 @@ import imbuy.backend.dto.CategoryTreeDto;
 import imbuy.backend.dto.PageResponse;
 import imbuy.backend.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,14 +12,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor
 @Tag(name = "Categories", description = "Category management APIs")
-@SecurityRequirement(name = "bearerAuth")
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -50,7 +47,6 @@ public class CategoryController {
         return ResponseEntity.ok(category);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
     @Operation(summary = "Create a new category")
     public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryDto categoryDto) {
@@ -58,7 +54,6 @@ public class CategoryController {
         return new ResponseEntity<>(category, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{id}")
     @Operation(summary = "Update category")
     public ResponseEntity<CategoryDto> updateCategory(
@@ -68,7 +63,6 @@ public class CategoryController {
         return ResponseEntity.ok(category);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     @Operation(summary = "Delete category")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {

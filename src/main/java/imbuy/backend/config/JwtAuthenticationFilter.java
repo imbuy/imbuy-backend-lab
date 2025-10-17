@@ -1,59 +1,56 @@
 package imbuy.backend.config;
 
-import imbuy.backend.domain.User;
 import imbuy.backend.repository.UserRepository;
 import imbuy.backend.service.TokenBlacklistService;
 import imbuy.backend.utils.JwtTokenProvider;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter implements Filter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
     private final UserRepository userRepository;
 
     @Override
-    public void doFilterInternal(HttpServletRequest request,
-                                 HttpServletResponse response,
-                                 FilterChain filterChain) throws ServletException, IOException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
 
-        String header = request.getHeader("Authorization");
+        HttpServletRequest httpReq = (HttpServletRequest) request;
+        HttpServletResponse httpResp = (HttpServletResponse) response;
 
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+        String header = httpReq.getHeader("Authorization");
 
-            if (jwtTokenProvider.validateToken(token) && !tokenBlacklistService.isBlacklisted(token)) {
-                String email = jwtTokenProvider.getEmailFromToken(token);
-                String role = jwtTokenProvider.getRoleFromToken(token);
+        try {
+            if (header != null && header.startsWith("Bearer ")) {
+                String token = header.substring(7);
 
-                User user = userRepository.findByEmail(email).orElse(null);
-                if (user != null) {
-                    List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
-
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(email, null, authorities);
-                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+                if (!jwtTokenProvider.validateToken(token)) {
+                    throw new JwtException("Invalid or expired token");
                 }
-            }
-        }
+                if (tokenBlacklistService.isBlacklisted(token)) {
+                    throw new JwtException("Token is blacklisted");
+                }
 
-        filterChain.doFilter(request, response);
+                String email = jwtTokenProvider.getEmailFromToken(token);
+                userRepository.findByEmail(email)
+                        .orElseThrow(() -> new JwtException("User not found"));
+            }
+
+            chain.doFilter(request, response);
+
+        } catch (JwtException e) {
+            httpResp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            httpResp.setContentType("application/json");
+            httpResp.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+        }
     }
 }

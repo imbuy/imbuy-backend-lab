@@ -22,7 +22,7 @@ class JwtTokenProviderTest {
 
     @Test
     void generateToken_WithValidData_ShouldReturnToken() {
-        String token = jwtTokenProvider.generateToken("test@example.com", "USER");
+        String token = jwtTokenProvider.generateToken("test@example.com");
 
         assertNotNull(token);
         assertFalse(token.isEmpty());
@@ -30,25 +30,17 @@ class JwtTokenProviderTest {
 
     @Test
     void getEmailFromToken_WithValidToken_ShouldReturnEmail() {
-        String token = jwtTokenProvider.generateToken("test@example.com", "USER");
+        String token = jwtTokenProvider.generateToken("test@example.com");
 
         String email = jwtTokenProvider.getEmailFromToken(token);
 
         assertEquals("test@example.com", email);
     }
 
-    @Test
-    void getRoleFromToken_WithValidToken_ShouldReturnRole() {
-        String token = jwtTokenProvider.generateToken("test@example.com", "ADMIN");
-
-        String role = jwtTokenProvider.getRoleFromToken(token);
-
-        assertEquals("ADMIN", role);
-    }
 
     @Test
     void validateToken_WithValidToken_ShouldReturnTrue() {
-        String token = jwtTokenProvider.generateToken("test@example.com", "USER");
+        String token = jwtTokenProvider.generateToken("test@example.com");
 
         boolean isValid = jwtTokenProvider.validateToken(token);
 

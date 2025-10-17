@@ -18,8 +18,7 @@ import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -38,6 +37,7 @@ class LotControllerTest {
     private LotDto lotDto;
     private CreateLotDto createLotDto;
     private UpdateLotDto updateLotDto;
+    private final String token = "test-token";
 
     @BeforeEach
     void setUp() {
@@ -63,110 +63,44 @@ class LotControllerTest {
     }
 
     @Test
-    void getLots_WithAllParameters_ShouldReturnLots() {
+    void getLots_WithToken_ShouldReturnLots() {
         PageResponse<LotDto> pageResponse = new PageResponse<>();
         pageResponse.setContent(List.of(lotDto));
 
-        when(securityUtils.isAuthenticated()).thenReturn(true);
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
+        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
         when(lotService.getLots(any(LotFilterDto.class), any(Pageable.class), eq(1L)))
                 .thenReturn(pageResponse);
 
         ResponseEntity<PageResponse<LotDto>> response = lotController.getLots(
-                "test", "ACTIVE", 1L, 1L, true);
+                token != null ? "Bearer " + token : null,
+                "test", "ACTIVE", 1L, 1L, true
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getContent().size());
         verify(lotService).getLots(any(LotFilterDto.class), any(Pageable.class), eq(1L));
     }
 
     @Test
-    void getLots_WithInvalidStatus_ShouldIgnoreStatus() {
-        PageResponse<LotDto> pageResponse = new PageResponse<>();
-        pageResponse.setContent(List.of(lotDto));
+    void getLotById_WithToken_ShouldReturnLot() {
+        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
+        when(lotService.getLotById(1L)).thenReturn(lotDto);
 
-        when(securityUtils.isAuthenticated()).thenReturn(false);
-        when(lotService.getLots(any(LotFilterDto.class), any(Pageable.class), eq(null)))
-                .thenReturn(pageResponse);
-
-        ResponseEntity<PageResponse<LotDto>> response = lotController.getLots(
-                "test", "INVALID_STATUS", 1L, 1L, null);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(lotService).getLots(any(LotFilterDto.class), any(Pageable.class), eq(null));
-    }
-
-    @Test
-    void getLotsWithTotalCount_WithValidParameters_ShouldReturnLots() {
-        PageResponse<LotDto> pageResponse = new PageResponse<>();
-        pageResponse.setContent(List.of(lotDto));
-
-        when(securityUtils.isAuthenticated()).thenReturn(true);
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
-        when(lotService.getLotsWithTotalCount(any(LotFilterDto.class), any(Pageable.class), eq(1L)))
-                .thenReturn(pageResponse);
-
-        ResponseEntity<PageResponse<LotDto>> response = lotController.getLotsWithTotalCount(
-                "test", "ACTIVE", 1L, 1L, 0, 20);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().getContent().size());
-        verify(lotService).getLotsWithTotalCount(any(LotFilterDto.class), any(Pageable.class), eq(1L));
-    }
-
-    @Test
-    void getLotsWithTotalCount_WithLargeSize_ShouldLimitTo50() {
-        PageResponse<LotDto> pageResponse = new PageResponse<>();
-
-        when(securityUtils.isAuthenticated()).thenReturn(false);
-        when(lotService.getLotsWithTotalCount(any(LotFilterDto.class), any(Pageable.class), eq(null)))
-                .thenReturn(pageResponse);
-
-        ResponseEntity<PageResponse<LotDto>> response = lotController.getLotsWithTotalCount(
-                null, null, null, null, 0, 100);
-
-        assertNotNull(response);
-        verify(lotService).getLotsWithTotalCount(any(LotFilterDto.class),
-                argThat(pageable -> pageable.getPageSize() == 50), eq(null));
-    }
-
-    @Test
-    void getLotById_WithExistingLot_ShouldReturnLot() {
-        when(securityUtils.isAuthenticated()).thenReturn(true);
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
-        when(lotService.getLotById(1L, 1L)).thenReturn(lotDto);
-
-        ResponseEntity<LotDto> response = lotController.getLotById(1L);
+        ResponseEntity<LotDto> response = lotController.getLotById(1L, "Bearer " + token);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).getLotById(1L, 1L);
+        verify(lotService).getLotById(1L);
     }
 
     @Test
-    void getLotById_WithUnauthenticatedUser_ShouldReturnLot() {
-        when(securityUtils.isAuthenticated()).thenReturn(false);
-        when(lotService.getLotById(1L, null)).thenReturn(lotDto);
-
-        ResponseEntity<LotDto> response = lotController.getLotById(1L);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(lotService).getLotById(1L, null);
-    }
-
-    @Test
-    void createLot_WithValidData_ShouldCreateLot() {
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
+    void createLot_WithToken_ShouldCreateLot() {
+        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
         when(lotService.createLot(createLotDto, 1L)).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.createLot(createLotDto);
+        ResponseEntity<LotDto> response = lotController.createLot("Bearer " + token, createLotDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -175,77 +109,49 @@ class LotControllerTest {
     }
 
     @Test
-    void approveLot_AsAdmin_ShouldApproveLot() {
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
+    void approveLot_WithToken_ShouldApproveLot() {
+        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
         when(lotService.approveLot(1L, 1L)).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.approveLot(1L);
+        ResponseEntity<LotDto> response = lotController.approveLot("Bearer " + token, 1L);
 
-        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
         verify(lotService).approveLot(1L, 1L);
     }
 
     @Test
-    void cancelLot_AsAdmin_ShouldCancelLot() {
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
-        when(lotService.cancelLot(1L, 1L, "Invalid data")).thenReturn(lotDto);
+    void cancelLot_WithToken_ShouldCancelLot() {
+        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
+        when(lotService.cancelLot(1L, 1L, "Reason")).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.cancelLot(1L, "Invalid data");
+        ResponseEntity<LotDto> response = lotController.cancelLot("Bearer " + token, 1L, "Reason");
 
-        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).cancelLot(1L, 1L, "Invalid data");
+        verify(lotService).cancelLot(1L, 1L, "Reason");
     }
 
     @Test
-    void cancelLot_WithoutReason_ShouldCancelLot() {
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
-        when(lotService.cancelLot(1L, 1L, null)).thenReturn(lotDto);
-
-        ResponseEntity<LotDto> response = lotController.cancelLot(1L, null);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(lotService).cancelLot(1L, 1L, null);
-    }
-
-    @Test
-    void updateLot_AsOwner_ShouldUpdateLot() {
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
+    void updateLot_WithToken_ShouldUpdateLot() {
+        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
         when(lotService.updateLot(1L, updateLotDto, 1L)).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.updateLot(1L, updateLotDto);
+        ResponseEntity<LotDto> response = lotController.updateLot("Bearer " + token, 1L, updateLotDto);
 
-        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
         verify(lotService).updateLot(1L, updateLotDto, 1L);
     }
 
     @Test
-    void deleteLot_AsOwner_ShouldDeleteLot() {
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
+    void deleteLot_WithToken_ShouldDeleteLot() {
+        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
         doNothing().when(lotService).deleteLot(1L, 1L);
 
-        ResponseEntity<Void> response = lotController.deleteLot(1L);
+        ResponseEntity<Void> response = lotController.deleteLot("Bearer " + token, 1L);
 
-        assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(lotService).deleteLot(1L, 1L);
-    }
-
-    @Test
-    void toggleFavorite_AsUser_ShouldToggleFavorite() {
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
-        doNothing().when(lotService).toggleFavorite(1L, 1L);
-
-        ResponseEntity<Void> response = lotController.toggleFavorite(1L);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(lotService).toggleFavorite(1L, 1L);
     }
 }

@@ -134,7 +134,7 @@ class LotServiceIntegrationTest extends AbstractIntegrationTest {
         lot = lotRepository.save(lot);
 
         // Act
-        LotDto result = lotService.getLotById(lot.getId(), testUser.getId());
+        LotDto result = lotService.getLotById(lot.getId());
 
         // Assert
         assertNotNull(result);

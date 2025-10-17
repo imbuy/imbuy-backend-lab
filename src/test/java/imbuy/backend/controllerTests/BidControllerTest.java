@@ -5,7 +5,6 @@ import imbuy.backend.dto.BidDto;
 import imbuy.backend.dto.CreateBidDto;
 import imbuy.backend.dto.PageResponse;
 import imbuy.backend.service.BidService;
-import imbuy.backend.utils.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,9 +29,6 @@ class BidControllerTest {
 
     @Mock
     private BidService bidService;
-
-    @Mock
-    private SecurityUtils securityUtils;
 
     @InjectMocks
     private BidController bidController;
@@ -71,10 +67,9 @@ class BidControllerTest {
 
     @Test
     void placeBid_WithValidData_ShouldCreateBid() {
-        when(securityUtils.getCurrentUserId()).thenReturn(1L);
         when(bidService.placeBid(1L, createBidDto, 1L)).thenReturn(bidDto);
 
-        ResponseEntity<BidDto> response = bidController.placeBid(1L, createBidDto);
+        ResponseEntity<BidDto> response = bidController.placeBid(1L, String.valueOf(1L), createBidDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
