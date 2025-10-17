@@ -5,6 +5,7 @@ import imbuy.backend.domain.Lot;
 import imbuy.backend.domain.User;
 import imbuy.backend.dto.*;
 import imbuy.backend.enums.LotStatus;
+import imbuy.backend.mapper.LotMapper;
 import imbuy.backend.repository.LotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ public class LotService {
     private final LotRepository lotRepository;
     private final AuthService userService;
     private final BidService bidService;
+    private final LotMapper lotMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<LotDto> getLots(LotFilterDto filter, Pageable pageable, Long currentUserId) {
@@ -42,13 +44,13 @@ public class LotService {
             lots = lotRepository.findAll(pageable);
         }
 
-        return PageResponse.of(lots.map(lot -> mapToDto(lot)));
+        return PageResponse.of(lots.map(lot -> lotMapper.toDto(lot, currentUserId)));
     }
 
     @Transactional(readOnly = true)
     public LotDto getLotById(Long id) {
         Lot lot = getLotEntityById(id);
-        return mapToDto(lot);
+        return lotMapper.toDto(lot, null);
     }
 
     public Lot getLotEntityById(Long id) {
@@ -79,7 +81,7 @@ public class LotService {
         lot.setEndDate(createLotDto.getEndDate());
 
         lotRepository.save(lot);
-        return mapToDto(lot);
+        return lotMapper.toDto(lot,ownerId);
     }
 
     @Transactional
@@ -97,7 +99,7 @@ public class LotService {
         lot.setStatus(LotStatus.ACTIVE);
         lotRepository.save(lot);
 
-        return mapToDto(lot);
+        return lotMapper.toDto(lot, currentUserId);
     }
 
     @Transactional
@@ -115,7 +117,7 @@ public class LotService {
         lot.setStatus(LotStatus.CANCELLED);
         lotRepository.save(lot);
 
-        LotDto dto = mapToDto(lot);
+        LotDto dto = lotMapper.toDto(lot, currentUserId);
         dto.setRejectionReason(reason);
         return dto;
     }
@@ -138,7 +140,7 @@ public class LotService {
         if (updateLotDto.getEndDate() != null) lot.setEndDate(updateLotDto.getEndDate());
 
         lotRepository.save(lot);
-        return mapToDto(lot);
+        return lotMapper.toDto(lot, currentUserId);
     }
 
     @Transactional
@@ -163,32 +165,5 @@ public class LotService {
 
     public void updateLotCurrentPrice(Lot lot) {
         lotRepository.save(lot);
-    }
-    private LotDto mapToDto(Lot lot) {
-        LotDto dto = new LotDto();
-        dto.setId(lot.getId());
-        dto.setTitle(lot.getTitle());
-        dto.setDescription(lot.getDescription());
-        dto.setStartPrice(lot.getStartPrice());
-        dto.setCurrentPrice(lot.getCurrentPrice());
-        dto.setBidStep(lot.getBidStep());
-        dto.setOwnerId(lot.getOwner().getId());
-        dto.setOwnerUsername(lot.getOwner().getUsername());
-        if (lot.getCategory() != null) {
-            dto.setCategoryId(lot.getCategory().getId());
-            dto.setCategoryName(lot.getCategory().getName());
-        }
-        dto.setStatus(lot.getStatus());
-        dto.setStartDate(lot.getStartDate());
-        dto.setEndDate(lot.getEndDate());
-        dto.setCreatedAt(lot.getCreatedAt());
-
-        dto.setBidCount(bidService.countBidsByLot(lot.getId()));
-        bidService.getHighestBidByLot(lot.getId()).ifPresent(bid -> {
-            dto.setWinnerId(bid.getBidder().getId());
-            dto.setWinnerUsername(bid.getBidder().getUsername());
-        });
-
-        return dto;
     }
 }

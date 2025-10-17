@@ -6,6 +6,7 @@ import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.exception.UserNotFoundException;
+import imbuy.backend.mapper.UserMapper;
 import imbuy.backend.repository.UserRepository;
 import imbuy.backend.utils.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
+    private final UserMapper userMapper;
 
     public User register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -54,13 +56,13 @@ public class AuthService {
 
     public PageResponse<UserDto> findAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
-        return PageResponse.of(users.map(this::mapToDto));
+        return PageResponse.of(users.map(userMapper::toDto));
     }
 
     public UserDto findById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        return mapToDto(user);
+        return userMapper.toDto(user);
     }
 
     public UserDto updateProfile(Long userId, RegisterRequest request) {
@@ -72,18 +74,10 @@ public class AuthService {
             user.setPassword(request.getPassword());
         }
         userRepository.save(user);
-        return mapToDto(user);
+        return userMapper.toDto(user);
     }
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-    }
-
-    private UserDto mapToDto(User user) {
-        UserDto dto = new UserDto();
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setUsername(user.getUsername());
-        return dto;
     }
 }
