@@ -1,15 +1,12 @@
 package imbuy.backend.serviceTests;
 
 import imbuy.backend.domain.User;
-import imbuy.backend.dto.LoginRequest;
 import imbuy.backend.dto.PageResponse;
 import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
-import imbuy.backend.exception.UserNotFoundException;
 import imbuy.backend.repository.UserRepository;
+import imbuy.backend.mapper.UserMapper;
 import imbuy.backend.service.AuthService;
-import imbuy.backend.service.TokenBlacklistService;
-import imbuy.backend.utils.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,14 +17,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,44 +33,31 @@ class AuthServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
-
-    @Mock
-    private TokenBlacklistService tokenBlacklistService;
+    private UserMapper userMapper;
 
     @InjectMocks
     private AuthService authService;
 
     private RegisterRequest registerRequest;
-    private LoginRequest loginRequest;
     private User user;
+    private UserDto userDto;
 
     @BeforeEach
     void setUp() {
-        registerRequest = new RegisterRequest();
-        registerRequest.setEmail("test@example.com");
-        registerRequest.setPassword("password123");
-        registerRequest.setUsername("testuser");
+        registerRequest = new RegisterRequest("test@example.com", "password123", "testuser");
 
-        loginRequest = new LoginRequest();
-        loginRequest.setEmail("test@example.com");
-        loginRequest.setPassword("password123");
-
-        user = new User("test@example.com", "encodedPassword", "testuser");
+        user = new User("test@example.com", "password123", "testuser");
         user.setId(1L);
-        user.addRole("USER");
+
+        userDto = new UserDto(1L, "test@example.com", "testuser");
     }
 
     @Test
-    void register_WithNewUser_ShouldReturnUserDto() {
-        when(userRepository.existsByEmail(registerRequest.getEmail())).thenReturn(false);
-        when(passwordEncoder.encode(registerRequest.getPassword())).thenReturn("encodedPassword");
+    void register_WithNewUser_ShouldReturnUser() {
+        when(userRepository.existsByEmail(registerRequest.email())).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        UserDto result = authService.register(registerRequest);
+        User result = authService.register(registerRequest);
 
         assertNotNull(result);
         assertEquals(user.getEmail(), result.getEmail());
@@ -84,50 +67,10 @@ class AuthServiceTest {
 
     @Test
     void register_WithExistingEmail_ShouldThrowException() {
-        when(userRepository.existsByEmail(registerRequest.getEmail())).thenReturn(true);
+        when(userRepository.existsByEmail(registerRequest.email())).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> authService.register(registerRequest));
+        assertThrows(ResponseStatusException.class, () -> authService.register(registerRequest));
         verify(userRepository, never()).save(any(User.class));
-    }
-
-    @Test
-    void login_WithValidCredentials_ShouldReturnToken() {
-        String expectedToken = "jwt.token.here";
-
-        when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())).thenReturn(true);
-        when(jwtTokenProvider.generateToken(user.getEmail(), "USER")).thenReturn(expectedToken);
-
-        String result = authService.login(loginRequest);
-
-        assertEquals(expectedToken, result);
-        verify(jwtTokenProvider).generateToken(user.getEmail(), "USER");
-    }
-
-    @Test
-    void login_WithInvalidEmail_ShouldThrowException() {
-        when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class, () -> authService.login(loginRequest));
-        verify(jwtTokenProvider, never()).generateToken(anyString(), anyString());
-    }
-
-    @Test
-    void login_WithInvalidPassword_ShouldThrowException() {
-        when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())).thenReturn(false);
-
-        assertThrows(RuntimeException.class, () -> authService.login(loginRequest));
-        verify(jwtTokenProvider, never()).generateToken(anyString(), anyString());
-    }
-
-    @Test
-    void logout_ShouldBlacklistToken() {
-        String token = "token.to.blacklist";
-
-        authService.logout(token);
-
-        verify(tokenBlacklistService).blacklistToken(token);
     }
 
     @Test
@@ -135,52 +78,51 @@ class AuthServiceTest {
         List<User> users = List.of(user);
         Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 20), 1);
         when(userRepository.findAll(any(Pageable.class))).thenReturn(userPage);
+        when(userMapper.mapToDto(any(User.class))).thenReturn(userDto);
 
         PageResponse<UserDto> result = authService.findAllUsers(PageRequest.of(0, 20));
 
         assertNotNull(result);
-        assertNotNull(result.getContent());
-        assertEquals(1, result.getContent().size());
-        assertEquals(user.getEmail(), result.getContent().get(0).getEmail());
-        assertEquals(0, result.getCurrentPage());
-        assertEquals(20, result.getPageSize());
-        assertFalse(result.isHasNext());
-        assertFalse(result.isHasPrevious());
-
+        assertNotNull(result.content());
+        assertEquals(1, result.content().size());
+        assertEquals(user.getEmail(), result.content().get(0).email());
         verify(userRepository).findAll(any(Pageable.class));
     }
 
     @Test
     void findById_WithExistingUser_ShouldReturnUserDto() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userMapper.mapToDto(user)).thenReturn(userDto);
 
         UserDto result = authService.findById(1L);
 
         assertNotNull(result);
-        assertEquals(user.getEmail(), result.getEmail());
+        assertEquals(user.getEmail(), result.email());
+        verify(userRepository).findById(1L);
     }
 
     @Test
     void findById_WithNonExistingUser_ShouldThrowException() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> authService.findById(1L));
+        assertThrows(ResponseStatusException.class, () -> authService.findById(1L));
     }
 
     @Test
-    void updateProfile_WithValidData_ShouldReturnUpdatedUser() {
-        RegisterRequest updateRequest = new RegisterRequest();
-        updateRequest.setUsername("newusername");
-        updateRequest.setPassword("newpassword");
+    void updateProfile_WithValidData_ShouldReturnUpdatedUserDto() {
+        RegisterRequest updateRequest = new RegisterRequest(user.getEmail(), "newpassword", "newusername");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode("newpassword")).thenReturn("encodedNewPassword");
-        when(userRepository.save(user)).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userMapper.mapToDto(any(User.class))).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            return new UserDto(u.getId(), u.getEmail(), u.getUsername());
+        });
 
         UserDto result = authService.updateProfile(1L, updateRequest);
 
         assertNotNull(result);
-        assertEquals("newusername", user.getUsername());
-        verify(userRepository).save(user);
+        assertEquals("newusername", result.username());
+        verify(userRepository).save(any(User.class));
     }
 }

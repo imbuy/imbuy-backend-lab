@@ -16,10 +16,8 @@ class RegisterRequestDtoTest {
 
     @Test
     void registerRequest_ValidData_ShouldPassValidation() {
-        RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setEmail("test@example.com");
-        registerRequest.setPassword("password123");
-        registerRequest.setUsername("testuser");
+        // создаём record через конструктор
+        RegisterRequest registerRequest = new RegisterRequest("test@example.com", "password123", "testuser");
 
         Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(registerRequest);
 
@@ -28,10 +26,7 @@ class RegisterRequestDtoTest {
 
     @Test
     void registerRequest_NullUsername_ShouldPassValidation() {
-        RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setEmail("test@example.com");
-        registerRequest.setPassword("password123");
-        registerRequest.setUsername(null);
+        RegisterRequest registerRequest = new RegisterRequest("test@example.com", "password123", null);
 
         Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(registerRequest);
 
@@ -40,36 +35,21 @@ class RegisterRequestDtoTest {
 
     @Test
     void registerRequest_AllFields_ShouldHaveCorrectValues() {
-        RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setEmail("user@example.com");
-        registerRequest.setPassword("securepassword");
-        registerRequest.setUsername("newuser");
+        RegisterRequest registerRequest = new RegisterRequest("user@example.com", "securepassword", "newuser");
 
-        assertThat(registerRequest.getEmail()).isEqualTo("user@example.com");
-        assertThat(registerRequest.getPassword()).isEqualTo("securepassword");
-        assertThat(registerRequest.getUsername()).isEqualTo("newuser");
+        assertThat(registerRequest.email()).isEqualTo("user@example.com");
+        assertThat(registerRequest.password()).isEqualTo("securepassword");
+        assertThat(registerRequest.username()).isEqualTo("newuser");
     }
 
     @Test
     void registerRequest_EqualsAndHashCode_ShouldWorkCorrectly() {
-        RegisterRequest request1 = new RegisterRequest();
-        request1.setEmail("test@example.com");
-        request1.setPassword("password123");
-        request1.setUsername("testuser");
-
-        RegisterRequest request2 = new RegisterRequest();
-        request2.setEmail("test@example.com");
-        request2.setPassword("password123");
-        request2.setUsername("testuser");
-
-        RegisterRequest differentRequest = new RegisterRequest();
-        differentRequest.setEmail("different@example.com");
+        RegisterRequest request1 = new RegisterRequest("test@example.com", "password123", "testuser");
+        RegisterRequest request2 = new RegisterRequest("test@example.com", "password123", "testuser");
+        RegisterRequest differentRequest = new RegisterRequest("different@example.com", "password123", "testuser");
 
         assertThat(request1).isEqualTo(request2);
         assertThat(request1).isNotEqualTo(differentRequest);
-        assertThat(request1).isNotEqualTo(null);
-        assertThat(request1).isNotEqualTo("not a RegisterRequest");
-
         assertThat(request1.hashCode()).isEqualTo(request2.hashCode());
         assertThat(request1.hashCode()).isNotEqualTo(differentRequest.hashCode());
     }

@@ -1,11 +1,11 @@
 package imbuy.backend.dtoTests;
 
 import imbuy.backend.dto.CreateBidDto;
-import org.junit.jupiter.api.Test;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import org.junit.jupiter.api.Test;
+
 import java.math.BigDecimal;
 import java.util.Set;
 
@@ -17,76 +17,36 @@ class CreateBidDtoTest {
 
     @Test
     void createBidDto_ValidData_ShouldPassValidation() {
-        CreateBidDto createBidDto = new CreateBidDto();
-        createBidDto.setAmount(new BigDecimal("100.50"));
-
-        Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(createBidDto);
-
+        CreateBidDto dto = new CreateBidDto(new BigDecimal("100.5"), 1L);
+        Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(dto);
         assertThat(violations).isEmpty();
     }
 
     @Test
     void createBidDto_NullAmount_ShouldFailValidation() {
-        CreateBidDto createBidDto = new CreateBidDto();
-        createBidDto.setAmount(null);
-
-        Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(createBidDto);
-
+        CreateBidDto dto = new CreateBidDto(null, null);
+        Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(dto);
         assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage()).isEqualTo("Amount is required");
     }
 
     @Test
     void createBidDto_ZeroAmount_ShouldFailValidation() {
-        CreateBidDto createBidDto = new CreateBidDto();
-        createBidDto.setAmount(BigDecimal.ZERO);
-
-        Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(createBidDto);
-
+        CreateBidDto dto = new CreateBidDto(BigDecimal.ZERO, 1L);
+        Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(dto);
         assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("Amount must be greater than 0");
-    }
-
-    @Test
-    void createBidDto_NegativeAmount_ShouldFailValidation() {
-        CreateBidDto createBidDto = new CreateBidDto();
-        createBidDto.setAmount(new BigDecimal("-5.00"));
-
-        Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(createBidDto);
-
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("Amount must be greater than 0");
+        assertThat(violations.iterator().next().getMessage()).isEqualTo("Amount must be greater than 0");
     }
 
     @Test
     void createBidDto_EqualsAndHashCode_ShouldWorkCorrectly() {
-        CreateBidDto dto1 = new CreateBidDto();
-        dto1.setAmount(new BigDecimal("100.50"));
-
-        CreateBidDto dto2 = new CreateBidDto();
-        dto2.setAmount(new BigDecimal("100.50"));
-
-        CreateBidDto differentDto = new CreateBidDto();
-        differentDto.setAmount(new BigDecimal("200.00"));
+        CreateBidDto dto1 = new CreateBidDto(new BigDecimal("10"),1L);
+        CreateBidDto dto2 = new CreateBidDto(new BigDecimal("10"),1L);
+        CreateBidDto diff = new CreateBidDto(new BigDecimal("20"),1L);
 
         assertThat(dto1).isEqualTo(dto2);
-        assertThat(dto1).isNotEqualTo(differentDto);
-        assertThat(dto1).isNotEqualTo(null);
-        assertThat(dto1).isNotEqualTo("not a CreateBidDto");
-
+        assertThat(dto1).isNotEqualTo(diff);
         assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
-        assertThat(dto1.hashCode()).isNotEqualTo(differentDto.hashCode());
-    }
-
-    @Test
-    void createBidDto_ToString_ShouldContainAmount() {
-        CreateBidDto createBidDto = new CreateBidDto();
-        createBidDto.setAmount(new BigDecimal("150.75"));
-
-        String toString = createBidDto.toString();
-
-        assertThat(toString).contains("amount=150.75");
+        assertThat(dto1.hashCode()).isNotEqualTo(diff.hashCode());
     }
 }

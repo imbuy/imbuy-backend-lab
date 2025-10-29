@@ -30,7 +30,6 @@ public class User {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
     @Column(nullable = false)
     private String password;
 
@@ -65,11 +64,5 @@ public class User {
         this.email = email;
         this.password = password;
         this.username = username;
-        this.roles.add("USER");
     }
-
-    public void addRole(String role) {
-        this.roles.add(role);
-    }
-
 }

@@ -17,29 +17,18 @@ class CategoryDtoTest {
 
     @Test
     void categoryDto_ValidData_ShouldPassValidation() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setId(1L);
-        categoryDto.setName("Electronics");
-        categoryDto.setParentId(2L);
-        categoryDto.setParentName("Technology");
-
-        CategoryDto child = new CategoryDto();
-        child.setId(3L);
-        child.setName("Laptops");
-        categoryDto.setChildren(List.of(child));
+        CategoryDto child = new CategoryDto(3L, "Laptops", null, null, List.of());
+        CategoryDto categoryDto = new CategoryDto(1L, "Electronics", 2L, "Technology", List.of(child));
 
         Set<ConstraintViolation<CategoryDto>> violations = validator.validate(categoryDto);
-
         assertThat(violations).isEmpty();
     }
 
     @Test
     void categoryDto_BlankName_ShouldFailValidation() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setName("");
+        CategoryDto categoryDto = new CategoryDto(1L, "", null, null, List.of());
 
         Set<ConstraintViolation<CategoryDto>> violations = validator.validate(categoryDto);
-
         assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
                 .isEqualTo("Category name is required");
@@ -47,11 +36,9 @@ class CategoryDtoTest {
 
     @Test
     void categoryDto_NullName_ShouldFailValidation() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setName(null);
+        CategoryDto categoryDto = new CategoryDto(1L, null, null, null, List.of());
 
         Set<ConstraintViolation<CategoryDto>> violations = validator.validate(categoryDto);
-
         assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
                 .isEqualTo("Category name is required");
@@ -59,54 +46,27 @@ class CategoryDtoTest {
 
     @Test
     void categoryDto_WithChildren_ShouldMaintainHierarchy() {
-        CategoryDto parent = new CategoryDto();
-        parent.setId(1L);
-        parent.setName("Parent");
+        CategoryDto child1 = new CategoryDto(2L, "Child 1", 1L, null, List.of());
+        CategoryDto child2 = new CategoryDto(3L, "Child 2", 1L, null, List.of());
+        CategoryDto parent = new CategoryDto(1L, "Parent", null, null, List.of(child1, child2));
 
-        CategoryDto child1 = new CategoryDto();
-        child1.setId(2L);
-        child1.setName("Child 1");
-        child1.setParentId(1L);
-
-        CategoryDto child2 = new CategoryDto();
-        child2.setId(3L);
-        child2.setName("Child 2");
-        child2.setParentId(1L);
-
-        parent.setChildren(List.of(child1, child2));
-
-        assertThat(parent.getChildren()).hasSize(2);
-        assertThat(parent.getChildren().get(0).getName()).isEqualTo("Child 1");
-        assertThat(parent.getChildren().get(1).getName()).isEqualTo("Child 2");
-        assertThat(parent.getChildren().get(0).getParentId()).isEqualTo(1L);
+        assertThat(parent.children()).hasSize(2);
+        assertThat(parent.children().get(0).name()).isEqualTo("Child 1");
+        assertThat(parent.children().get(1).name()).isEqualTo("Child 2");
+        assertThat(parent.children().get(0).parentId()).isEqualTo(1L);
     }
 
     @Test
     void categoryDto_EmptyChildrenList_ShouldWork() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setId(1L);
-        categoryDto.setName("Test Category");
-        categoryDto.setChildren(List.of());
-
-        assertThat(categoryDto.getChildren()).isEmpty();
+        CategoryDto categoryDto = new CategoryDto(1L, "Test Category", null, null, List.of());
+        assertThat(categoryDto.children()).isEmpty();
     }
+
     @Test
     void categoryDto_EqualsAndHashCode_ShouldWorkCorrectly() {
-        CategoryDto categoryDto1 = new CategoryDto();
-        categoryDto1.setId(1L);
-        categoryDto1.setName("Electronics");
-        categoryDto1.setParentId(2L);
-        categoryDto1.setParentName("Technology");
-
-        CategoryDto categoryDto2 = new CategoryDto();
-        categoryDto2.setId(1L);
-        categoryDto2.setName("Electronics");
-        categoryDto2.setParentId(2L);
-        categoryDto2.setParentName("Technology");
-
-        CategoryDto differentCategoryDto = new CategoryDto();
-        differentCategoryDto.setId(3L);
-        differentCategoryDto.setName("Books");
+        CategoryDto categoryDto1 = new CategoryDto(1L, "Electronics", 2L, "Technology", List.of());
+        CategoryDto categoryDto2 = new CategoryDto(1L, "Electronics", 2L, "Technology", List.of());
+        CategoryDto differentCategoryDto = new CategoryDto(3L, "Books", null, null, List.of());
 
         assertThat(categoryDto1).isEqualTo(categoryDto2);
         assertThat(categoryDto1).isNotEqualTo(differentCategoryDto);
@@ -119,19 +79,10 @@ class CategoryDtoTest {
 
     @Test
     void categoryDto_ToString_ShouldContainAllFields() {
-        CategoryDto child = new CategoryDto();
-        child.setId(3L);
-        child.setName("Laptops");
-
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setId(1L);
-        categoryDto.setName("Electronics");
-        categoryDto.setParentId(2L);
-        categoryDto.setParentName("Technology");
-        categoryDto.setChildren(List.of(child));
+        CategoryDto child = new CategoryDto(3L, "Laptops", null, null, List.of());
+        CategoryDto categoryDto = new CategoryDto(1L, "Electronics", 2L, "Technology", List.of(child));
 
         String toString = categoryDto.toString();
-
         assertThat(toString).contains("id=1");
         assertThat(toString).contains("name=Electronics");
         assertThat(toString).contains("parentId=2");

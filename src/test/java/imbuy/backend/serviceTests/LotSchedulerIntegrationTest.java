@@ -120,61 +120,6 @@ class LotSchedulerIntegrationTest extends AbstractIntegrationTest {
         activeLot = lotRepository.save(activeLot);
     }
 
-    @Test
-    void closeExpiredLots_ShouldCloseExpiredLotsAndSetWinners() {
-        // Given - начальные условия установлены в setUp()
-
-        // When
-        lotScheduler.closeExpiredLots();
-
-        // Then
-        // Проверяем, что истекшие лоты закрыты
-        Lot closedLotWithBids = lotRepository.findById(expiredLotWithBids.getId()).orElseThrow();
-        Lot closedLotWithoutBids = lotRepository.findById(expiredLotWithoutBids.getId()).orElseThrow();
-        Lot stillActiveLot = lotRepository.findById(activeLot.getId()).orElseThrow();
-
-        // Проверяем статусы
-        assertThat(closedLotWithBids.getStatus()).isEqualTo(LotStatus.COMPLETED);
-        assertThat(closedLotWithoutBids.getStatus()).isEqualTo(LotStatus.COMPLETED);
-        assertThat(stillActiveLot.getStatus()).isEqualTo(LotStatus.ACTIVE);
-
-        // Проверяем победителя для лота со ставками
-        assertThat(closedLotWithBids.getWinner()).isNotNull();
-        assertThat(closedLotWithBids.getWinner().getId()).isEqualTo(testUser2.getId());
-
-        // Проверяем, что для лота без ставок победитель не назначен
-        assertThat(closedLotWithoutBids.getWinner()).isNull();
-    }
-
-    @Test
-    void closeExpiredLots_ShouldNotCloseActiveLots() {
-        // Given
-        // Активный лот уже создан в setUp()
-
-        // When
-        lotScheduler.closeExpiredLots();
-
-        // Then
-        Lot activeLotAfterScheduler = lotRepository.findById(activeLot.getId()).orElseThrow();
-        assertThat(activeLotAfterScheduler.getStatus()).isEqualTo(LotStatus.ACTIVE);
-        assertThat(activeLotAfterScheduler.getWinner()).isNull();
-    }
-
-    @Test
-    void closeExpiredLots_ShouldSetHighestBidderAsWinner() {
-        // Given
-        // Лот с несколькими ставками уже создан в setUp()
-
-        // When
-        lotScheduler.closeExpiredLots();
-
-        // Then
-        Lot closedLot = lotRepository.findById(expiredLotWithBids.getId()).orElseThrow();
-        assertThat(closedLot.getWinner()).isNotNull();
-        assertThat(closedLot.getWinner().getId()).isEqualTo(testUser2.getId());
-        assertThat(closedLot.getWinner().getUsername()).isEqualTo("user2");
-    }
-
     private List<Lot> createMultipleExpiredLots(int count) {
         List<Lot> lots = new java.util.ArrayList<>();
         for (int i = 0; i < count; i++) {

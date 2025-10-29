@@ -19,25 +19,27 @@ class LotDtoTest {
 
     @Test
     void lotDto_ValidData_ShouldPassValidation() {
-        LotDto lotDto = new LotDto();
-        lotDto.setId(1L);
-        lotDto.setTitle("Test Lot");
-        lotDto.setDescription("Test Description");
-        lotDto.setStartPrice(new BigDecimal("100.00"));
-        lotDto.setCurrentPrice(new BigDecimal("150.00"));
-        lotDto.setBidStep(new BigDecimal("10.00"));
-        lotDto.setOwnerId(1L);
-        lotDto.setOwnerUsername("owner123");
-        lotDto.setCategoryId(2L);
-        lotDto.setCategoryName("Electronics");
-        lotDto.setStatus(LotStatus.ACTIVE);
-        lotDto.setStartDate(LocalDateTime.now().minusHours(1));
-        lotDto.setEndDate(LocalDateTime.now().plusHours(1));
-        lotDto.setCreatedAt(LocalDateTime.now());
-        lotDto.setBidCount(5);
-        lotDto.setIsFavorite(true);
-        lotDto.setWinnerId(3L);
-        lotDto.setWinnerUsername("winner123");
+        LotDto lotDto = new LotDto(
+                1L,
+                "Test Lot",
+                "Test Description",
+                new BigDecimal("100.00"),
+                new BigDecimal("150.00"),
+                new BigDecimal("10.00"),
+                1L,
+                "owner123",
+                2L,
+                "Electronics",
+                LotStatus.ACTIVE,
+                LocalDateTime.now().minusHours(1),
+                LocalDateTime.now().plusHours(1),
+                LocalDateTime.now(),
+                5,
+                true,
+                null,
+                3L,
+                "winner123"
+        );
 
         Set<ConstraintViolation<LotDto>> violations = validator.validate(lotDto);
 
@@ -46,10 +48,27 @@ class LotDtoTest {
 
     @Test
     void lotDto_BlankTitle_ShouldFailValidation() {
-        LotDto lotDto = new LotDto();
-        lotDto.setTitle("");
-        lotDto.setStartPrice(new BigDecimal("100.00"));
-        lotDto.setBidStep(new BigDecimal("10.00"));
+        LotDto lotDto = new LotDto(
+                1L,
+                "",
+                "Description",
+                new BigDecimal("100.00"),
+                new BigDecimal("150.00"),
+                new BigDecimal("10.00"),
+                1L,
+                "owner",
+                2L,
+                "Category",
+                LotStatus.ACTIVE,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now(),
+                0,
+                false,
+                null,
+                null,
+                null
+        );
 
         Set<ConstraintViolation<LotDto>> violations = validator.validate(lotDto);
 
@@ -63,46 +82,47 @@ class LotDtoTest {
         LocalDateTime endDate = LocalDateTime.now().plusHours(1);
         LocalDateTime createdAt = LocalDateTime.now();
 
-        LotDto lotDto = new LotDto();
-        lotDto.setId(1L);
-        lotDto.setTitle("Test Lot");
-        lotDto.setDescription("Test Description");
-        lotDto.setStartPrice(new BigDecimal("200.00"));
-        lotDto.setCurrentPrice(new BigDecimal("250.00"));
-        lotDto.setBidStep(new BigDecimal("20.00"));
-        lotDto.setOwnerId(10L);
-        lotDto.setOwnerUsername("testowner");
-        lotDto.setCategoryId(5L);
-        lotDto.setCategoryName("Books");
-        lotDto.setStatus(LotStatus.COMPLETED);
-        lotDto.setStartDate(startDate);
-        lotDto.setEndDate(endDate);
-        lotDto.setCreatedAt(createdAt);
-        lotDto.setBidCount(15);
-        lotDto.setIsFavorite(false);
-        lotDto.setRejectionReason("Invalid description");
-        lotDto.setWinnerId(20L);
-        lotDto.setWinnerUsername("winneruser");
+        LotDto lotDto = new LotDto(
+                1L,
+                "Test Lot",
+                "Test Description",
+                new BigDecimal("200.00"),
+                new BigDecimal("250.00"),
+                new BigDecimal("20.00"),
+                10L,
+                "testowner",
+                5L,
+                "Books",
+                LotStatus.COMPLETED,
+                startDate,
+                endDate,
+                createdAt,
+                15,
+                false,
+                "Invalid description",
+                20L,
+                "winneruser"
+        );
 
-        assertThat(lotDto.getId()).isEqualTo(1L);
-        assertThat(lotDto.getTitle()).isEqualTo("Test Lot");
-        assertThat(lotDto.getDescription()).isEqualTo("Test Description");
-        assertThat(lotDto.getStartPrice()).isEqualByComparingTo("200.00");
-        assertThat(lotDto.getCurrentPrice()).isEqualByComparingTo("250.00");
-        assertThat(lotDto.getBidStep()).isEqualByComparingTo("20.00");
-        assertThat(lotDto.getOwnerId()).isEqualTo(10L);
-        assertThat(lotDto.getOwnerUsername()).isEqualTo("testowner");
-        assertThat(lotDto.getCategoryId()).isEqualTo(5L);
-        assertThat(lotDto.getCategoryName()).isEqualTo("Books");
-        assertThat(lotDto.getStatus()).isEqualTo(LotStatus.COMPLETED);
-        assertThat(lotDto.getStartDate()).isEqualTo(startDate);
-        assertThat(lotDto.getEndDate()).isEqualTo(endDate);
-        assertThat(lotDto.getCreatedAt()).isEqualTo(createdAt);
-        assertThat(lotDto.getBidCount()).isEqualTo(15);
-        assertThat(lotDto.getIsFavorite()).isFalse();
-        assertThat(lotDto.getRejectionReason()).isEqualTo("Invalid description");
-        assertThat(lotDto.getWinnerId()).isEqualTo(20L);
-        assertThat(lotDto.getWinnerUsername()).isEqualTo("winneruser");
+        assertThat(lotDto.id()).isEqualTo(1L);
+        assertThat(lotDto.title()).isEqualTo("Test Lot");
+        assertThat(lotDto.description()).isEqualTo("Test Description");
+        assertThat(lotDto.startPrice()).isEqualByComparingTo("200.00");
+        assertThat(lotDto.currentPrice()).isEqualByComparingTo("250.00");
+        assertThat(lotDto.bidStep()).isEqualByComparingTo("20.00");
+        assertThat(lotDto.ownerId()).isEqualTo(10L);
+        assertThat(lotDto.ownerUsername()).isEqualTo("testowner");
+        assertThat(lotDto.categoryId()).isEqualTo(5L);
+        assertThat(lotDto.categoryName()).isEqualTo("Books");
+        assertThat(lotDto.status()).isEqualTo(LotStatus.COMPLETED);
+        assertThat(lotDto.startDate()).isEqualTo(startDate);
+        assertThat(lotDto.endDate()).isEqualTo(endDate);
+        assertThat(lotDto.createdAt()).isEqualTo(createdAt);
+        assertThat(lotDto.bidCount()).isEqualTo(15);
+        assertThat(lotDto.isFavorite()).isFalse();
+        assertThat(lotDto.rejectionReason()).isEqualTo("Invalid description");
+        assertThat(lotDto.winnerId()).isEqualTo(20L);
+        assertThat(lotDto.winnerUsername()).isEqualTo("winneruser");
     }
 
     @Test
@@ -111,29 +131,25 @@ class LotDtoTest {
         LocalDateTime endDate = LocalDateTime.now().plusHours(1);
         LocalDateTime createdAt = LocalDateTime.now();
 
-        LotDto dto1 = new LotDto();
-        dto1.setId(1L);
-        dto1.setTitle("Test Lot");
-        dto1.setStartPrice(new BigDecimal("100.00"));
-        dto1.setBidStep(new BigDecimal("10.00"));
-        dto1.setStatus(LotStatus.ACTIVE);
-        dto1.setStartDate(startDate);
-        dto1.setEndDate(endDate);
-        dto1.setCreatedAt(createdAt);
+        LotDto dto1 = new LotDto(
+                1L, "Test Lot", null, new BigDecimal("100.00"), null,
+                new BigDecimal("10.00"), null, null, null, null,
+                LotStatus.ACTIVE, startDate, endDate, createdAt, null, null,
+                null, null, null
+        );
 
-        LotDto dto2 = new LotDto();
-        dto2.setId(1L);
-        dto2.setTitle("Test Lot");
-        dto2.setStartPrice(new BigDecimal("100.00"));
-        dto2.setBidStep(new BigDecimal("10.00"));
-        dto2.setStatus(LotStatus.ACTIVE);
-        dto2.setStartDate(startDate);
-        dto2.setEndDate(endDate);
-        dto2.setCreatedAt(createdAt);
+        LotDto dto2 = new LotDto(
+                1L, "Test Lot", null, new BigDecimal("100.00"), null,
+                new BigDecimal("10.00"), null, null, null, null,
+                LotStatus.ACTIVE, startDate, endDate, createdAt, null, null,
+                null, null, null
+        );
 
-        LotDto differentDto = new LotDto();
-        differentDto.setId(2L);
-        differentDto.setTitle("Different Lot");
+        LotDto differentDto = new LotDto(
+                2L, "Different Lot", null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, null
+        );
 
         assertThat(dto1).isEqualTo(dto2);
         assertThat(dto1).isNotEqualTo(differentDto);
@@ -150,26 +166,27 @@ class LotDtoTest {
         LocalDateTime endDate = LocalDateTime.now().plusHours(1);
         LocalDateTime createdAt = LocalDateTime.now();
 
-        LotDto lotDto = new LotDto();
-        lotDto.setId(1L);
-        lotDto.setTitle("Test Lot");
-        lotDto.setDescription("Test Description");
-        lotDto.setStartPrice(new BigDecimal("200.00"));
-        lotDto.setCurrentPrice(new BigDecimal("250.00"));
-        lotDto.setBidStep(new BigDecimal("20.00"));
-        lotDto.setOwnerId(10L);
-        lotDto.setOwnerUsername("testowner");
-        lotDto.setCategoryId(5L);
-        lotDto.setCategoryName("Books");
-        lotDto.setStatus(LotStatus.COMPLETED);
-        lotDto.setStartDate(startDate);
-        lotDto.setEndDate(endDate);
-        lotDto.setCreatedAt(createdAt);
-        lotDto.setBidCount(15);
-        lotDto.setIsFavorite(false);
-        lotDto.setRejectionReason("Invalid description");
-        lotDto.setWinnerId(20L);
-        lotDto.setWinnerUsername("winneruser");
+        LotDto lotDto = new LotDto(
+                1L,
+                "Test Lot",
+                "Test Description",
+                new BigDecimal("200.00"),
+                new BigDecimal("250.00"),
+                new BigDecimal("20.00"),
+                10L,
+                "testowner",
+                5L,
+                "Books",
+                LotStatus.COMPLETED,
+                startDate,
+                endDate,
+                createdAt,
+                15,
+                false,
+                "Invalid description",
+                20L,
+                "winneruser"
+        );
 
         String toString = lotDto.toString();
 
