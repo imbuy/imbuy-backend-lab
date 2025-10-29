@@ -16,7 +16,7 @@ public interface CategoryMapper {
     @Mapping(target = "parentId", source = "parent.id")
     @Mapping(target = "parentName", source = "parent.name")
     @Mapping(target = "children", ignore = true) // игнорируем children для обычного маппинга
-    CategoryDto toDto(Category category);
+    CategoryDto mapToDto(Category category);
 
     @Mapping(target = "parentId", source = "parent.id")
     @Mapping(target = "parentName", source = "parent.name")

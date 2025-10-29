@@ -4,7 +4,6 @@ import imbuy.backend.dto.BidDto;
 import imbuy.backend.dto.CreateBidDto;
 import imbuy.backend.dto.PageResponse;
 import imbuy.backend.service.BidService;
-import imbuy.backend.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 public class BidController {
 
     private final BidService bidService;
-    private final SecurityUtils securityUtils;
 
     @GetMapping
     @Operation(summary = "Get bid history for a lot")
@@ -40,15 +38,11 @@ public class BidController {
     @Operation(summary = "Place a bid on a lot")
     public ResponseEntity<BidDto> placeBid(
             @PathVariable Long lotId,
-            @RequestHeader("Authorization") String authHeader,
             @Valid @RequestBody CreateBidDto createBidDto) {
 
-        String token = authHeader.replace("Bearer ", "");
-        Long bidderId = securityUtils.getCurrentUserId(token);
-        BidDto bid = bidService.placeBid(lotId, createBidDto, bidderId);
+        BidDto bid = bidService.placeBid(lotId, createBidDto);
         return new ResponseEntity<>(bid, HttpStatus.CREATED);
     }
-
 
     @GetMapping("/winning")
     @Operation(summary = "Get winning bid for a lot")
@@ -57,3 +51,4 @@ public class BidController {
         return winningBid != null ? ResponseEntity.ok(winningBid) : ResponseEntity.notFound().build();
     }
 }
+

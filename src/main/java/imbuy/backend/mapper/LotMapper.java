@@ -18,5 +18,5 @@ public interface LotMapper {
     @Mapping(target = "winnerUsername", ignore = true)
     @Mapping(target = "isFavorite", ignore = true)
     @Mapping(target = "rejectionReason", ignore = true)
-    LotDto toDto(Lot lot, @Context Long currentUserId);
+    LotDto mapToDto(Lot lot, @Context Long currentUserId);
 }

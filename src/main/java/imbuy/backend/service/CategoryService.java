@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,50 +24,50 @@ public class CategoryService {
 
     public CategoryTreeDto getCategoryTree() {
         List<Category> rootCategories = categoryRepository.findRootCategoriesWithChildren();
-        CategoryTreeDto treeDto = new CategoryTreeDto();
-        treeDto.setCategories(rootCategories.stream()
-                .map(categoryMapper::toDtoWithChildren)
-                .collect(Collectors.toList()));
-        return treeDto;
+        return new CategoryTreeDto(
+                rootCategories.stream()
+                        .map(categoryMapper::toDtoWithChildren)
+                        .toList()
+        );
     }
 
     public PageResponse<CategoryDto> getAllCategories(Pageable pageable) {
         Page<Category> categories = categoryRepository.findAll(pageable);
-        return PageResponse.of(categories.map(categoryMapper::toDto));
+        return PageResponse.of(categories.map(categoryMapper::mapToDto));
     }
 
     public CategoryDto getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
-        return categoryMapper.toDto(category);
+        return categoryMapper.mapToDto(category);
     }
 
     public CategoryDto createCategory(CategoryDto categoryDto) {
-        if (categoryRepository.existsByNameAndParentId(categoryDto.getName(), categoryDto.getParentId())) {
+        if (categoryRepository.existsByNameAndParentId(categoryDto.name(), categoryDto.parentId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category with this name already exists");
         }
 
         Category category = new Category();
-        category.setName(categoryDto.getName());
+        category.setName(categoryDto.name());
 
-        if (categoryDto.getParentId() != null) {
-            Category parent = categoryRepository.findById(categoryDto.getParentId())
+        if (categoryDto.parentId() != null) {
+            Category parent = categoryRepository.findById(categoryDto.parentId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent category not found"));
             category.setParent(parent);
         }
 
         category = categoryRepository.save(category);
-        return categoryMapper.toDto(category);
+        return categoryMapper.mapToDto(category);
     }
 
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
 
-        category.setName(categoryDto.getName());
+        category.setName(categoryDto.name());
 
-        if (categoryDto.getParentId() != null) {
-            Category parent = categoryRepository.findById(categoryDto.getParentId())
+        if (categoryDto.parentId() != null) {
+            Category parent = categoryRepository.findById(categoryDto.parentId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent category not found"));
             category.setParent(parent);
         } else {
@@ -76,8 +75,9 @@ public class CategoryService {
         }
 
         category = categoryRepository.save(category);
-        return categoryMapper.toDto(category);
+        return categoryMapper.mapToDto(category);
     }
+
 
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)

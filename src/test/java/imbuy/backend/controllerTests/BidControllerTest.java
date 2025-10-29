@@ -19,8 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,43 +37,42 @@ class BidControllerTest {
 
     @BeforeEach
     void setUp() {
-        bidDto = new BidDto();
-        bidDto.setId(1L);
-        bidDto.setAmount(BigDecimal.valueOf(100));
-        bidDto.setBidderId(1L);
-        bidDto.setBidderUsername("testuser");
-        bidDto.setCreatedAt(LocalDateTime.now());
+        bidDto = new BidDto(
+                1L,
+                BigDecimal.valueOf(100),
+                1L,
+                "testuser",
+                LocalDateTime.now()
+        );
 
-        createBidDto = new CreateBidDto();
-        createBidDto.setAmount(BigDecimal.valueOf(100));
+        createBidDto = new CreateBidDto(BigDecimal.valueOf(100),1L);
     }
 
     @Test
     void getBidsByLotId_WithValidParameters_ShouldReturnBids() {
-        PageResponse<BidDto> pageResponse = new PageResponse<>();
-        pageResponse.setContent(List.of(bidDto));
+        PageResponse<BidDto> pageResponse = new PageResponse<>(List.of(bidDto), 0, 20, false, false);
 
         when(bidService.getBidsByLotId(1L, PageRequest.of(0, 20))).thenReturn(pageResponse);
 
         ResponseEntity<PageResponse<BidDto>> response = bidController.getBidsByLotId(1L, 0, 20);
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().getContent().size());
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().content()).hasSize(1);
         verify(bidService).getBidsByLotId(1L, PageRequest.of(0, 20));
     }
 
     @Test
     void placeBid_WithValidData_ShouldCreateBid() {
-        when(bidService.placeBid(1L, createBidDto, 1L)).thenReturn(bidDto);
+        when(bidService.placeBid(1L, createBidDto)).thenReturn(bidDto);
 
-        ResponseEntity<BidDto> response = bidController.placeBid(1L, String.valueOf(1L), createBidDto);
+        ResponseEntity<BidDto> response = bidController.placeBid(1L, createBidDto);
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(bidDto, response.getBody());
-        verify(bidService).placeBid(1L, createBidDto, 1L);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isEqualTo(bidDto);
+        verify(bidService).placeBid(1L, createBidDto);
     }
 
     @Test
@@ -83,9 +81,9 @@ class BidControllerTest {
 
         ResponseEntity<BidDto> response = bidController.getWinningBid(1L);
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(bidDto, response.getBody());
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(bidDto);
         verify(bidService).getWinningBid(1L);
     }
 
@@ -95,8 +93,8 @@ class BidControllerTest {
 
         ResponseEntity<BidDto> response = bidController.getWinningBid(1L);
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         verify(bidService).getWinningBid(1L);
     }
 }

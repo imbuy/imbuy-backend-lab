@@ -3,27 +3,22 @@ package imbuy.backend.dto;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
-public class CreateLotDto {
-    @NotBlank(message = "Title is required")
-    private String title;
-
-    private String description;
-
-    @NotNull(message = "Start price is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Start price must be greater than 0")
-    private BigDecimal startPrice;
-
-    @NotNull(message = "Bid step is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Bid step must be greater than 0")
-    private BigDecimal bidStep;
-
-    private Long categoryId;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-}
+public record CreateLotDto(
+        @NotBlank(message = "Title is required")
+        String title,
+        String description,
+        @NotNull(message = "Start price is required")
+        @DecimalMin(value = "0.0", inclusive = false, message = "Start price must be greater than 0")
+        BigDecimal startPrice,
+        @NotNull(message = "Bid step is required")
+        @DecimalMin(value = "0.0", inclusive = false, message = "Bid step must be greater than 0")
+        BigDecimal bidStep,
+        Long categoryId,
+        Long ownerId,
+        LocalDateTime startDate,
+        LocalDateTime endDate
+) {}

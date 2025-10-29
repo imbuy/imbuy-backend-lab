@@ -35,27 +35,25 @@ public class BidService {
     public PageResponse<BidDto> getBidsByLotId(Long lotId, Pageable pageable) {
         Lot lot = lotService.getLotEntityById(lotId);
         Page<Bid> bids = bidRepository.findByLotIdOrderByCreatedAtDesc(lot.getId(), pageable);
-        return PageResponse.of(bids.map(bidMapper::toDto));
+        return PageResponse.of(bids.map(bidMapper::mapToDto));
     }
 
     @Transactional
-    public BidDto placeBid(Long lotId, CreateBidDto createBidDto, Long bidderId) {
+    public BidDto placeBid(Long lotId, CreateBidDto createBidDto) {
         Lot lot = lotService.getLotEntityById(lotId);
+        Long bidderId = createBidDto.bidderId();
         User bidder = userService.getUserById(bidderId);
+        validateBid(lot, createBidDto.amount(), bidderId);
 
-        validateBid(lot, createBidDto.getAmount(), bidderId);
-
-        Bid bid = new Bid(lot, bidder, createBidDto.getAmount());
+        Bid bid = new Bid(lot, bidder, createBidDto.amount());
         bid = bidRepository.save(bid);
 
-        lot.setCurrentPrice(createBidDto.getAmount());
+        lot.setCurrentPrice(createBidDto.amount());
         lotService.updateLotCurrentPrice(lot);
 
-        log.info("User #{} ({}) placed bid {} on lot #{} ('{}')",
-                bidder.getId(), bidder.getUsername(), createBidDto.getAmount(), lot.getId(), lot.getTitle());
-
-        return bidMapper.toDto(bid);
+        return bidMapper.mapToDto(bid);
     }
+
 
     private void validateBid(Lot lot, BigDecimal amount, Long bidderId) {
         LocalDateTime now = LocalDateTime.now();
@@ -68,10 +66,6 @@ public class BidService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lot has already ended");
         }
 
-        if (lot.getOwner().getId().equals(bidderId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot bid on your own lot");
-        }
-
         BigDecimal minBid = lot.getCurrentPrice().add(lot.getBidStep());
         if (amount.compareTo(minBid) < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -82,7 +76,7 @@ public class BidService {
     @Transactional(readOnly = true)
     public BidDto getWinningBid(Long lotId) {
         return bidRepository.findTopByLotIdOrderByAmountDesc(lotId)
-                .map(bidMapper::toDto)
+                .map(bidMapper::mapToDto)
                 .orElse(null);
     }
 

@@ -4,22 +4,22 @@ import imbuy.backend.controller.LotController;
 import imbuy.backend.dto.*;
 import imbuy.backend.enums.LotStatus;
 import imbuy.backend.service.LotService;
-import imbuy.backend.utils.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,66 +28,56 @@ class LotControllerTest {
     @Mock
     private LotService lotService;
 
-    @Mock
-    private SecurityUtils securityUtils;
-
     @InjectMocks
     private LotController lotController;
 
     private LotDto lotDto;
-    private CreateLotDto createLotDto;
-    private UpdateLotDto updateLotDto;
-    private final String token = "test-token";
+    private PageResponse<LotDto> lotPageResponse;
 
     @BeforeEach
     void setUp() {
-        lotDto = new LotDto();
-        lotDto.setId(1L);
-        lotDto.setTitle("Test Lot");
-        lotDto.setDescription("Test Description");
-        lotDto.setStartPrice(BigDecimal.valueOf(100));
-        lotDto.setCurrentPrice(BigDecimal.valueOf(100));
-        lotDto.setBidStep(BigDecimal.valueOf(10));
-        lotDto.setStatus(LotStatus.ACTIVE);
-        lotDto.setOwnerId(1L);
+        lotDto = new LotDto(
+                1L,                      // id
+                "Test Lot",              // title
+                "Description",           // description
+                BigDecimal.valueOf(100), // startPrice
+                BigDecimal.valueOf(110), // currentPrice
+                BigDecimal.valueOf(10),  // bidStep
+                1L,                      // ownerId
+                "testuser",              // ownerUsername
+                2L,                      // categoryId
+                "Electronics",           // categoryName
+                LotStatus.ACTIVE,        // status
+                LocalDateTime.now(),     // startDate
+                LocalDateTime.now().plusDays(1), // endDate
+                LocalDateTime.now(),     // createdAt
+                0,                       // bidCount
+                false,                   // isFavorite
+                null,                     // rejectionReason
+                null,                     // winnerId
+                null                      // winnerUsername
+        );
 
-        createLotDto = new CreateLotDto();
-        createLotDto.setTitle("New Lot");
-        createLotDto.setDescription("New Description");
-        createLotDto.setStartPrice(BigDecimal.valueOf(200));
-        createLotDto.setBidStep(BigDecimal.valueOf(20));
-
-        updateLotDto = new UpdateLotDto();
-        updateLotDto.setTitle("Updated Lot");
-        updateLotDto.setDescription("Updated Description");
+        lotPageResponse = new PageResponse<>(List.of(lotDto), 0, 20, false, false);
     }
 
     @Test
-    void getLots_WithToken_ShouldReturnLots() {
-        PageResponse<LotDto> pageResponse = new PageResponse<>();
-        pageResponse.setContent(List.of(lotDto));
+    void getLots_ShouldReturnPaginatedLots() {
+        when(lotService.getLots(any(), any(PageRequest.class), any())).thenReturn(lotPageResponse);
 
-        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
-        when(lotService.getLots(any(LotFilterDto.class), any(Pageable.class), eq(1L)))
-                .thenReturn(pageResponse);
-
-        ResponseEntity<PageResponse<LotDto>> response = lotController.getLots(
-                token != null ? "Bearer " + token : null,
-                "test", "ACTIVE", 1L, 1L, true
-        );
+        ResponseEntity<PageResponse<LotDto>> response = lotController.getLots(null, null, null, null, null);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getContent().size());
-        verify(lotService).getLots(any(LotFilterDto.class), any(Pageable.class), eq(1L));
+        assertEquals(lotPageResponse, response.getBody());
+        verify(lotService).getLots(any(), any(PageRequest.class), any());
     }
 
     @Test
-    void getLotById_WithToken_ShouldReturnLot() {
-        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
+    void getLotById_ShouldReturnLot() {
         when(lotService.getLotById(1L)).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.getLotById(1L, "Bearer " + token);
+        ResponseEntity<LotDto> response = lotController.getLotById(1L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -96,62 +86,64 @@ class LotControllerTest {
     }
 
     @Test
-    void createLot_WithToken_ShouldCreateLot() {
-        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
-        when(lotService.createLot(createLotDto, 1L)).thenReturn(lotDto);
+    void createLot_ShouldReturnCreatedLot() {
+        CreateLotDto createLotDto = new CreateLotDto("New Lot", "Desc", BigDecimal.valueOf(100), BigDecimal.valueOf(10),
+                1L, 1L,LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        when(lotService.createLot(createLotDto, null)).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.createLot("Bearer " + token, createLotDto);
+        ResponseEntity<LotDto> response = lotController.createLot(createLotDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).createLot(createLotDto, 1L);
+        verify(lotService).createLot(createLotDto, null);
     }
 
     @Test
-    void approveLot_WithToken_ShouldApproveLot() {
-        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
-        when(lotService.approveLot(1L, 1L)).thenReturn(lotDto);
+    void approveLot_ShouldReturnApprovedLot() {
+        when(lotService.approveLot(1L, null)).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.approveLot("Bearer " + token, 1L);
+        ResponseEntity<LotDto> response = lotController.approveLot(1L, 1L);
 
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).approveLot(1L, 1L);
+        verify(lotService).approveLot(1L, null);
     }
 
     @Test
-    void cancelLot_WithToken_ShouldCancelLot() {
-        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
-        when(lotService.cancelLot(1L, 1L, "Reason")).thenReturn(lotDto);
+    void cancelLot_ShouldReturnCancelledLot() {
+        when(lotService.cancelLot(1L, null, "Reason")).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.cancelLot("Bearer " + token, 1L, "Reason");
+        ResponseEntity<LotDto> response = lotController.cancelLot(1L, 1L, "1L");
 
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).cancelLot(1L, 1L, "Reason");
+        verify(lotService).cancelLot(1L, null, "Reason");
     }
 
     @Test
-    void updateLot_WithToken_ShouldUpdateLot() {
-        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
-        when(lotService.updateLot(1L, updateLotDto, 1L)).thenReturn(lotDto);
+    void updateLot_ShouldReturnUpdatedLot() {
+        UpdateLotDto updateLotDto = new UpdateLotDto("Updated Lot", "Updated Desc", null, null, null);
+        when(lotService.updateLot(1L, updateLotDto, null)).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.updateLot("Bearer " + token, 1L, updateLotDto);
+        ResponseEntity<LotDto> response = lotController.updateLot(1L, 1L, updateLotDto);
 
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).updateLot(1L, updateLotDto, 1L);
+        verify(lotService).updateLot(1L, updateLotDto, null);
     }
 
     @Test
-    void deleteLot_WithToken_ShouldDeleteLot() {
-        when(securityUtils.getCurrentUserId(token)).thenReturn(1L);
-        doNothing().when(lotService).deleteLot(1L, 1L);
+    void deleteLot_ShouldReturnNoContent() {
+        doNothing().when(lotService).deleteLot(1L, null);
 
-        ResponseEntity<Void> response = lotController.deleteLot("Bearer " + token, 1L);
+        ResponseEntity<Void> response = lotController.deleteLot(1L, 1L);
 
+        assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(lotService).deleteLot(1L, 1L);
+        verify(lotService).deleteLot(1L, null);
     }
 }

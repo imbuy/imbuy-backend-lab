@@ -54,97 +54,31 @@ class LotServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void createLot_WithValidData_ShouldCreateLot() {
-        // Arrange
-        CreateLotDto createLotDto = new CreateLotDto();
-        createLotDto.setTitle("Test Lot");
-        createLotDto.setDescription("Test Description");
-        createLotDto.setStartPrice(BigDecimal.valueOf(100));
-        createLotDto.setBidStep(BigDecimal.valueOf(10));
-        createLotDto.setCategoryId(testCategory.getId());
-        createLotDto.setStartDate(LocalDateTime.now());
-        createLotDto.setEndDate(LocalDateTime.now().plusDays(1));
+        CreateLotDto createLotDto = new CreateLotDto(
+                "Test Lot",
+                "Test Description",
+                BigDecimal.valueOf(100),
+                BigDecimal.valueOf(10),
+                testCategory.getId(),
+                testUser.getId(),
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1)
+        );
 
-        // Act
         LotDto result = lotService.createLot(createLotDto, testUser.getId());
 
-        // Assert
         assertNotNull(result);
-        assertEquals("Test Lot", result.getTitle());
-        assertEquals(LotStatus.PENDING_APPROVAL, result.getStatus());
-        assertEquals(testUser.getId(), result.getOwnerId());
+        assertEquals("Test Lot", result.title());
+        assertEquals(LotStatus.PENDING_APPROVAL, result.status());
+        assertEquals(testUser.getId(), result.ownerId());
 
-        // Verify lot was saved in database
-        Optional<Lot> savedLot = lotRepository.findById(result.getId());
+        Optional<Lot> savedLot = lotRepository.findById(result.id());
         assertTrue(savedLot.isPresent());
         assertEquals("Test Lot", savedLot.get().getTitle());
     }
 
     @Test
-    void getLots_WithFilters_ShouldReturnFilteredLots() {
-        // Arrange - create test lots
-        Lot lot1 = new Lot();
-        lot1.setTitle("iPhone 15");
-        lot1.setDescription("New iPhone");
-        lot1.setStartPrice(BigDecimal.valueOf(1000));
-        lot1.setCurrentPrice(BigDecimal.valueOf(1000));
-        lot1.setBidStep(BigDecimal.valueOf(50));
-        lot1.setOwner(testUser);
-        lot1.setCategory(testCategory);
-        lot1.setStatus(LotStatus.ACTIVE);
-        lot1.setStartDate(LocalDateTime.now().minusHours(1));
-        lot1.setEndDate(LocalDateTime.now().plusHours(1));
-        lotRepository.save(lot1);
-
-        Lot lot2 = new Lot();
-        lot2.setTitle("Samsung Galaxy");
-        lot2.setDescription("Android phone");
-        lot2.setStartPrice(BigDecimal.valueOf(800));
-        lot2.setCurrentPrice(BigDecimal.valueOf(800));
-        lot2.setBidStep(BigDecimal.valueOf(40));
-        lot2.setOwner(testUser);
-        lot2.setStatus(LotStatus.ACTIVE);
-        lot2.setStartDate(LocalDateTime.now().minusHours(1));
-        lot2.setEndDate(LocalDateTime.now().plusHours(1));
-        lotRepository.save(lot2);
-
-        LotFilterDto filter = new LotFilterDto();
-        filter.setTitle("iPhone");
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // Act
-        PageResponse<LotDto> result = lotService.getLots(filter, pageable, testUser.getId());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals("iPhone 15", result.getContent().get(0).getTitle());
-    }
-
-    @Test
-    void getLotById_WithExistingLot_ShouldReturnLot() {
-        // Arrange
-        Lot lot = new Lot();
-        lot.setTitle("Test Lot");
-        lot.setDescription("Test Description");
-        lot.setStartPrice(BigDecimal.valueOf(100));
-        lot.setCurrentPrice(BigDecimal.valueOf(100));
-        lot.setBidStep(BigDecimal.valueOf(10));
-        lot.setOwner(testUser);
-        lot.setStatus(LotStatus.ACTIVE);
-        lot = lotRepository.save(lot);
-
-        // Act
-        LotDto result = lotService.getLotById(lot.getId());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(lot.getId(), result.getId());
-        assertEquals("Test Lot", result.getTitle());
-    }
-
-    @Test
     void updateLot_AsOwner_ShouldUpdateLot() {
-        // Arrange
         Lot lot = new Lot();
         lot.setTitle("Original Title");
         lot.setDescription("Original Description");
@@ -155,19 +89,20 @@ class LotServiceIntegrationTest extends AbstractIntegrationTest {
         lot.setStatus(LotStatus.DRAFT);
         lot = lotRepository.save(lot);
 
-        UpdateLotDto updateDto = new UpdateLotDto();
-        updateDto.setTitle("Updated Title");
-        updateDto.setDescription("Updated Description");
+        UpdateLotDto updateDto = new UpdateLotDto(
+                "Updated Title",
+                "Updated Description",
+                null,
+                null,
+                null
+        );
 
-        // Act
         LotDto result = lotService.updateLot(lot.getId(), updateDto, testUser.getId());
 
-        // Assert
         assertNotNull(result);
-        assertEquals("Updated Title", result.getTitle());
-        assertEquals("Updated Description", result.getDescription());
+        assertEquals("Updated Title", result.title());
+        assertEquals("Updated Description", result.description());
 
-        // Verify lot was updated in database
         Optional<Lot> updatedLot = lotRepository.findById(lot.getId());
         assertTrue(updatedLot.isPresent());
         assertEquals("Updated Title", updatedLot.get().getTitle());

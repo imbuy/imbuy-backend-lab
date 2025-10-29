@@ -17,8 +17,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -37,18 +36,15 @@ class CategoryControllerTest {
 
     @BeforeEach
     void setUp() {
-        categoryDto = new CategoryDto();
-        categoryDto.setId(1L);
-        categoryDto.setName("Electronics");
-
-        categoryTreeDto = new CategoryTreeDto();
-
-        categoryPageResponse = new PageResponse<>();
-        categoryPageResponse.setContent(List.of(categoryDto));
-        categoryPageResponse.setCurrentPage(0);
-        categoryPageResponse.setPageSize(20);
-        categoryPageResponse.setHasNext(false);
-        categoryPageResponse.setHasPrevious(false);
+        categoryDto = new CategoryDto(1L, "Electronics", null, null, null);
+        categoryTreeDto = new CategoryTreeDto(List.of(categoryDto));
+        categoryPageResponse = new PageResponse<>(
+                List.of(categoryDto),
+                0,
+                20,
+                false,
+                false
+        );
     }
 
     @Test
@@ -72,8 +68,8 @@ class CategoryControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().getContent().size());
-        assertEquals("Electronics", response.getBody().getContent().get(0).getName());
+        assertEquals(1, response.getBody().content().size());
+        assertEquals("Electronics", response.getBody().content().get(0).name());
         verify(categoryService).getAllCategories(any(PageRequest.class));
     }
 

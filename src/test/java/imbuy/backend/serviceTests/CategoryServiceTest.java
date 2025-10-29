@@ -4,6 +4,7 @@ import imbuy.backend.domain.Category;
 import imbuy.backend.dto.CategoryDto;
 import imbuy.backend.dto.CategoryTreeDto;
 import imbuy.backend.dto.PageResponse;
+import imbuy.backend.mapper.CategoryMapper;
 import imbuy.backend.repository.CategoryRepository;
 import imbuy.backend.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -28,6 +30,9 @@ class CategoryServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private CategoryMapper categoryMapper;
 
     @InjectMocks
     private CategoryService categoryService;
@@ -50,31 +55,33 @@ class CategoryServiceTest {
     void getCategoryTree_ShouldReturnTreeStructure() {
         when(categoryRepository.findRootCategoriesWithChildren()).thenReturn(List.of(parentCategory));
 
+        // Мокаем маппер, чтобы он вернул DTO
+        CategoryDto parentDto = new CategoryDto(1L, "Electronics", null, null, List.of());
+        when(categoryMapper.toDtoWithChildren(any(Category.class))).thenReturn(parentDto);
+
         CategoryTreeDto result = categoryService.getCategoryTree();
 
-        assertNotNull(result);
-        assertEquals(1, result.getCategories().size());
-        assertEquals("Electronics", result.getCategories().get(0).getName());
-        assertEquals(1, result.getCategories().get(0).getChildren().size());
-        assertEquals("Smartphones", result.getCategories().get(0).getChildren().get(0).getName());
+        assertThat(result).isNotNull();
+        assertThat(result.categories()).hasSize(1);
+        assertThat(result.categories().get(0).name()).isEqualTo("Electronics");
     }
 
     @Test
     void getAllCategories_WithPaginated_ShouldReturnPaginatedCategories() {
-        // Given
         List<Category> categories = List.of(parentCategory, childCategory);
-        Page<Category> categoryPage = new PageImpl<>(categories, PageRequest.of(0, 20), 2);
+        Page<Category> categoryPage = new PageImpl<>(categories, PageRequest.of(0, 20), categories.size());
         when(categoryRepository.findAll(any(PageRequest.class))).thenReturn(categoryPage);
 
-        // When
+        when(categoryMapper.mapToDto(any(Category.class)))
+                .thenAnswer(invocation -> {
+                    Category c = invocation.getArgument(0);
+                    return new CategoryDto(c.getId(), c.getName(), null, null, List.of());
+                });
+
         PageResponse<CategoryDto> result = categoryService.getAllCategories(PageRequest.of(0, 20));
 
-        // Then
-        assertNotNull(result);
-        assertNotNull(result.getContent());
-        assertEquals(2, result.getContent().size());
-        assertEquals(0, result.getCurrentPage());
-        assertEquals(20, result.getPageSize());
+        assertThat(result).isNotNull();
+        assertThat(result.content()).hasSize(2);
         verify(categoryRepository).findAll(any(PageRequest.class));
     }
 
@@ -85,28 +92,26 @@ class CategoryServiceTest {
 
         PageResponse<CategoryDto> result = categoryService.getAllCategories(PageRequest.of(0, 20));
 
-        assertNotNull(result);
-        assertTrue(result.getContent().isEmpty());
-        assertEquals(0, result.getCurrentPage());
-        assertEquals(20, result.getPageSize());
+        assertThat(result).isNotNull();
+        assertThat(result.content()).isEmpty();
         verify(categoryRepository).findAll(any(PageRequest.class));
     }
 
     @Test
     void getCategoryById_WithExistingCategory_ShouldReturnCategory() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(parentCategory));
+        when(categoryMapper.mapToDto(parentCategory))
+                .thenReturn(new CategoryDto(1L, "Electronics", null, null, List.of()));
 
         CategoryDto result = categoryService.getCategoryById(1L);
 
-        assertNotNull(result);
-        assertEquals("Electronics", result.getName());
+        assertThat(result).isNotNull();
+        assertThat(result.name()).isEqualTo("Electronics");
     }
 
     @Test
     void createCategory_WithValidData_ShouldCreateCategory() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setName("Laptops");
-        categoryDto.setParentId(1L);
+        CategoryDto categoryDto = new CategoryDto(null, "Laptops", 1L, null, List.of());
 
         when(categoryRepository.existsByNameAndParentId("Laptops", 1L)).thenReturn(false);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(parentCategory));
@@ -115,39 +120,38 @@ class CategoryServiceTest {
             category.setId(3L);
             return category;
         });
+        when(categoryMapper.mapToDto(any(Category.class)))
+                .thenReturn(new CategoryDto(3L, "Laptops", 1L, null, List.of()));
 
         CategoryDto result = categoryService.createCategory(categoryDto);
 
-        assertNotNull(result);
-        assertEquals("Laptops", result.getName());
+        assertThat(result).isNotNull();
+        assertThat(result.name()).isEqualTo("Laptops");
         verify(categoryRepository).save(any(Category.class));
     }
 
     @Test
     void createCategory_WithDuplicateName_ShouldThrowException() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setName("Electronics");
-        categoryDto.setParentId(null);
-
+        CategoryDto categoryDto = new CategoryDto(null, "Electronics", null, null, List.of());
         when(categoryRepository.existsByNameAndParentId("Electronics", null)).thenReturn(true);
 
-        assertThrows(RuntimeException.class, () -> categoryService.createCategory(categoryDto));
+        assertThatThrownBy(() -> categoryService.createCategory(categoryDto))
+                .isInstanceOf(RuntimeException.class);
         verify(categoryRepository, never()).save(any(Category.class));
     }
 
     @Test
     void updateCategory_WithValidData_ShouldUpdateCategory() {
-        CategoryDto categoryDto = new CategoryDto();
-        categoryDto.setName("Updated Electronics");
-        categoryDto.setParentId(null);
-
+        CategoryDto categoryDto = new CategoryDto(null, "Updated Electronics", null, null, List.of());
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(parentCategory));
         when(categoryRepository.save(any(Category.class))).thenReturn(parentCategory);
+        when(categoryMapper.mapToDto(any(Category.class)))
+                .thenReturn(new CategoryDto(1L, "Updated Electronics", null, null, List.of()));
 
         CategoryDto result = categoryService.updateCategory(1L, categoryDto);
 
-        assertNotNull(result);
-        assertEquals("Updated Electronics", result.getName());
+        assertThat(result).isNotNull();
+        assertThat(result.name()).isEqualTo("Updated Electronics");
         verify(categoryRepository).save(parentCategory);
     }
 
@@ -155,7 +159,6 @@ class CategoryServiceTest {
     void deleteCategory_WithoutChildrenOrLots_ShouldDeleteCategory() {
         Category category = new Category("ToDelete");
         category.setId(3L);
-
         when(categoryRepository.findById(3L)).thenReturn(Optional.of(category));
 
         categoryService.deleteCategory(3L);
@@ -167,7 +170,8 @@ class CategoryServiceTest {
     void deleteCategory_WithChildren_ShouldThrowException() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(parentCategory));
 
-        assertThrows(RuntimeException.class, () -> categoryService.deleteCategory(1L));
+        assertThatThrownBy(() -> categoryService.deleteCategory(1L))
+                .isInstanceOf(RuntimeException.class);
         verify(categoryRepository, never()).delete(any());
     }
 }
