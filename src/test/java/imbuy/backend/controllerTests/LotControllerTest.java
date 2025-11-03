@@ -1,7 +1,10 @@
 package imbuy.backend.controllerTests;
 
 import imbuy.backend.controller.LotController;
-import imbuy.backend.dto.*;
+import imbuy.backend.dto.CreateLotDto;
+import imbuy.backend.dto.LotDto;
+import imbuy.backend.dto.PageResponse;
+import imbuy.backend.dto.UpdateLotDto;
 import imbuy.backend.enums.LotStatus;
 import imbuy.backend.service.LotService;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +21,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -88,62 +92,63 @@ class LotControllerTest {
     @Test
     void createLot_ShouldReturnCreatedLot() {
         CreateLotDto createLotDto = new CreateLotDto("New Lot", "Desc", BigDecimal.valueOf(100), BigDecimal.valueOf(10),
-                1L, 1L,LocalDateTime.now(), LocalDateTime.now().plusDays(1));
-        when(lotService.createLot(createLotDto, null)).thenReturn(lotDto);
+                1L, 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+
+        when(lotService.createLot(any(CreateLotDto.class), any(Long.class))).thenReturn(lotDto);
 
         ResponseEntity<LotDto> response = lotController.createLot(createLotDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).createLot(createLotDto, null);
+        verify(lotService).createLot(any(CreateLotDto.class), any(Long.class));
     }
 
     @Test
     void approveLot_ShouldReturnApprovedLot() {
-        when(lotService.approveLot(1L, null)).thenReturn(lotDto);
+        when(lotService.approveLot(1L, 1L)).thenReturn(lotDto);
 
         ResponseEntity<LotDto> response = lotController.approveLot(1L, 1L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).approveLot(1L, null);
+        verify(lotService).approveLot(1L, 1L);
     }
 
     @Test
     void cancelLot_ShouldReturnCancelledLot() {
-        when(lotService.cancelLot(1L, null, "Reason")).thenReturn(lotDto);
+        when(lotService.cancelLot(1L, 1L, "Reason")).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.cancelLot(1L, 1L, "1L");
+        ResponseEntity<LotDto> response = lotController.cancelLot(1L, 1L, "Reason");
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).cancelLot(1L, null, "Reason");
+        verify(lotService).cancelLot(1L, 1L, "Reason");
     }
 
     @Test
     void updateLot_ShouldReturnUpdatedLot() {
         UpdateLotDto updateLotDto = new UpdateLotDto("Updated Lot", "Updated Desc", null, null, null);
-        when(lotService.updateLot(1L, updateLotDto, null)).thenReturn(lotDto);
+        when(lotService.updateLot(1L, updateLotDto, 1L)).thenReturn(lotDto);
 
         ResponseEntity<LotDto> response = lotController.updateLot(1L, 1L, updateLotDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).updateLot(1L, updateLotDto, null);
+        verify(lotService).updateLot(1L, updateLotDto, 1L);
     }
 
     @Test
     void deleteLot_ShouldReturnNoContent() {
-        doNothing().when(lotService).deleteLot(1L, null);
+        doNothing().when(lotService).deleteLot(1L, 1L);
 
         ResponseEntity<Void> response = lotController.deleteLot(1L, 1L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(lotService).deleteLot(1L, null);
+        verify(lotService).deleteLot(1L, 1L);
     }
 }

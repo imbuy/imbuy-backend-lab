@@ -4,8 +4,8 @@ import imbuy.backend.domain.Bid;
 import imbuy.backend.domain.Lot;
 import imbuy.backend.domain.User;
 import imbuy.backend.dto.BidDto;
-import imbuy.backend.dto.CreateBidDto;
 import imbuy.backend.enums.LotStatus;
+import imbuy.backend.mapper.BidMapper;
 import imbuy.backend.repository.BidRepository;
 import imbuy.backend.service.BidService;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +27,9 @@ class BidServiceTest {
 
     @Mock
     private BidRepository bidRepository;
+
+    @Mock
+    private BidMapper bidMapper;
 
     @InjectMocks
     private BidService bidService;
@@ -60,13 +63,25 @@ class BidServiceTest {
         Bid winningBid = new Bid(activeLot, bidder, BigDecimal.valueOf(150));
         winningBid.setId(1L);
 
+        BidDto winningBidDto = new BidDto(
+                1L,                      // id
+                BigDecimal.valueOf(150), // amount
+                2L,                      // bidderId
+                "bidder",                // bidderUsername
+                LocalDateTime.now()      // createdAt
+        );
+
         when(bidRepository.findTopByLotIdOrderByAmountDesc(1L)).thenReturn(Optional.of(winningBid));
+        when(bidMapper.mapToDto(winningBid)).thenReturn(winningBidDto);
 
         BidDto result = bidService.getWinningBid(1L);
 
         assertNotNull(result);
         assertEquals(BigDecimal.valueOf(150), result.amount());
+        assertEquals(2L, result.bidder_id());
+
         verify(bidRepository).findTopByLotIdOrderByAmountDesc(1L);
+        verify(bidMapper).mapToDto(winningBid);
     }
 
     @Test
@@ -77,5 +92,6 @@ class BidServiceTest {
 
         assertNull(result);
         verify(bidRepository).findTopByLotIdOrderByAmountDesc(1L);
+        verifyNoInteractions(bidMapper);
     }
 }
