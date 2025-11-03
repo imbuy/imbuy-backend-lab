@@ -13,12 +13,12 @@ public record CreateLotDto(
         String description,
         @NotNull(message = "Start price is required")
         @DecimalMin(value = "0.0", inclusive = false, message = "Start price must be greater than 0")
-        BigDecimal startPrice,
+        BigDecimal start_price,
         @NotNull(message = "Bid step is required")
         @DecimalMin(value = "0.0", inclusive = false, message = "Bid step must be greater than 0")
-        BigDecimal bidStep,
-        Long categoryId,
-        Long ownerId,
-        LocalDateTime startDate,
-        LocalDateTime endDate
+        BigDecimal bid_step,
+        Long category_id,
+        Long owner_id,
+        LocalDateTime start_date,
+        LocalDateTime end_date
 ) {}

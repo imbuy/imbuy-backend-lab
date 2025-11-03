@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 public record UpdateLotDto(
         String title,
         String description,
-        BigDecimal bidStep,
-        Long categoryId,
-        LocalDateTime endDate
+        BigDecimal bid_step,
+        Long category_id,
+        LocalDateTime end_date
 ) {}

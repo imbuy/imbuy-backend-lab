@@ -35,11 +35,11 @@ public class LotService {
             lots = lotRepository.findByFilters(
                     filter.title(),
                     filter.status(),
-                    filter.categoryId(),
-                    filter.ownerId(),
+                    filter.category_id(),
+                    filter.owner_id(),
                     pageable
             );
-        } else if (filter != null && Boolean.TRUE.equals(filter.activeOnly())) {
+        } else if (filter != null && Boolean.TRUE.equals(filter.active_only())) {
             lots = lotRepository.findByStatus(LotStatus.ACTIVE, pageable);
         } else {
             lots = lotRepository.findAll(pageable);
@@ -66,20 +66,20 @@ public class LotService {
         Lot lot = new Lot();
         lot.setTitle(createLotDto.title());
         lot.setDescription(createLotDto.description());
-        lot.setStartPrice(createLotDto.startPrice());
-        lot.setCurrentPrice(createLotDto.startPrice());
-        lot.setBidStep(createLotDto.bidStep());
+        lot.setStartPrice(createLotDto.start_price());
+        lot.setCurrentPrice(createLotDto.start_price());
+        lot.setBidStep(createLotDto.bid_step());
         lot.setOwner(owner);
         lot.setStatus(LotStatus.PENDING_APPROVAL);
 
-        if (createLotDto.categoryId() != null) {
-            Category category = categoryRepository.findById(createLotDto.categoryId())
+        if (createLotDto.category_id() != null) {
+            Category category = categoryRepository.findById(createLotDto.category_id())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
             lot.setCategory(category);
         }
 
-        lot.setStartDate(createLotDto.startDate() != null ? createLotDto.startDate() : LocalDateTime.now());
-        lot.setEndDate(createLotDto.endDate());
+        lot.setStartDate(createLotDto.start_date() != null ? createLotDto.start_date() : LocalDateTime.now());
+        lot.setEndDate(createLotDto.end_date());
 
         lotRepository.save(lot);
         return lotMapper.mapToDto(lot, ownerId);
@@ -127,8 +127,8 @@ public class LotService {
 
         if (updateLotDto.title() != null) lot.setTitle(updateLotDto.title());
         if (updateLotDto.description() != null) lot.setDescription(updateLotDto.description());
-        if (updateLotDto.bidStep() != null) lot.setBidStep(updateLotDto.bidStep());
-        if (updateLotDto.endDate() != null) lot.setEndDate(updateLotDto.endDate());
+        if (updateLotDto.bid_step() != null) lot.setBidStep(updateLotDto.bid_step());
+        if (updateLotDto.end_date() != null) lot.setEndDate(updateLotDto.end_date());
 
         lotRepository.save(lot);
         return lotMapper.mapToDto(lot, currentUserId);
@@ -152,7 +152,7 @@ public class LotService {
 
     private boolean hasFilters(LotFilterDto filter) {
         return filter.title() != null || filter.status() != null ||
-                filter.categoryId() != null || filter.ownerId() != null;
+                filter.category_id() != null || filter.owner_id() != null;
     }
 
     private void checkOwnership(Lot lot, Long userId) {

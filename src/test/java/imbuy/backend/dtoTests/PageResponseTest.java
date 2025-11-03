@@ -20,10 +20,10 @@ class PageResponseTest {
         PageResponse<String> response = PageResponse.of(page);
 
         assertThat(response.content()).isEqualTo(content);
-        assertThat(response.currentPage()).isEqualTo(0);
-        assertThat(response.pageSize()).isEqualTo(10);
-        assertThat(response.hasNext()).isTrue();
-        assertThat(response.hasPrevious()).isFalse();
+        assertThat(response.current_page()).isEqualTo(0);
+        assertThat(response.page_size()).isEqualTo(10);
+        assertThat(response.has_next()).isTrue();
+        assertThat(response.has_previous()).isFalse();
     }
 
     @Test
@@ -32,8 +32,8 @@ class PageResponseTest {
 
         PageResponse<String> response = PageResponse.of(page);
 
-        assertThat(response.hasNext()).isTrue();
-        assertThat(response.hasPrevious()).isFalse();
+        assertThat(response.has_next()).isTrue();
+        assertThat(response.has_previous()).isFalse();
     }
 
     @Test
@@ -42,8 +42,8 @@ class PageResponseTest {
 
         PageResponse<String> response = PageResponse.of(page);
 
-        assertThat(response.hasNext()).isTrue();
-        assertThat(response.hasPrevious()).isTrue();
+        assertThat(response.has_next()).isTrue();
+        assertThat(response.has_previous()).isTrue();
     }
 
     @Test
@@ -52,8 +52,8 @@ class PageResponseTest {
 
         PageResponse<String> response = PageResponse.of(page);
 
-        assertThat(response.hasNext()).isFalse();
-        assertThat(response.hasPrevious()).isTrue();
+        assertThat(response.has_next()).isFalse();
+        assertThat(response.has_previous()).isTrue();
     }
 
     @Test
@@ -63,7 +63,7 @@ class PageResponseTest {
         PageResponse<String> response = PageResponse.of(page);
 
         assertThat(response.content()).isEmpty();
-        assertThat(response.hasNext()).isFalse();
-        assertThat(response.hasPrevious()).isFalse();
+        assertThat(response.has_next()).isFalse();
+        assertThat(response.has_previous()).isFalse();
     }
 }

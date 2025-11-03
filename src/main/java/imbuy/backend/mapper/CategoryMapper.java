@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface CategoryMapper {
 
-    @Mapping(target = "parentId", source = "parent.id")
-    @Mapping(target = "parentName", source = "parent.name")
+    @Mapping(target = "parent_id", source = "parent.id")
+    @Mapping(target = "parent_name", source = "parent.name")
     @Mapping(target = "children", ignore = true) // игнорируем children для обычного маппинга
     CategoryDto mapToDto(Category category);
 
-    @Mapping(target = "parentId", source = "parent.id")
-    @Mapping(target = "parentName", source = "parent.name")
+    @Mapping(target = "parent_id", source = "parent.id")
+    @Mapping(target = "parent_name", source = "parent.name")
     @Mapping(target = "children", source = "children", qualifiedByName = "mapChildren")
     CategoryDto toDtoWithChildren(Category category);
 

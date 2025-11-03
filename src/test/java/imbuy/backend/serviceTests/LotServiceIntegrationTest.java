@@ -13,8 +13,6 @@ import imbuy.backend.service.LotService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -70,7 +68,7 @@ class LotServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals("Test Lot", result.title());
         assertEquals(LotStatus.PENDING_APPROVAL, result.status());
-        assertEquals(testUser.getId(), result.ownerId());
+        assertEquals(testUser.getId(), result.owner_id());
 
         Optional<Lot> savedLot = lotRepository.findById(result.id());
         assertTrue(savedLot.isPresent());

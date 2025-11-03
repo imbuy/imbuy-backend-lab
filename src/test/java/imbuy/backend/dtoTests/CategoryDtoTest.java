@@ -53,7 +53,7 @@ class CategoryDtoTest {
         assertThat(parent.children()).hasSize(2);
         assertThat(parent.children().get(0).name()).isEqualTo("Child 1");
         assertThat(parent.children().get(1).name()).isEqualTo("Child 2");
-        assertThat(parent.children().get(0).parentId()).isEqualTo(1L);
+        assertThat(parent.children().get(0).parent_id()).isEqualTo(1L);
     }
 
     @Test
@@ -85,8 +85,8 @@ class CategoryDtoTest {
         String toString = categoryDto.toString();
         assertThat(toString).contains("id=1");
         assertThat(toString).contains("name=Electronics");
-        assertThat(toString).contains("parentId=2");
-        assertThat(toString).contains("parentName=Technology");
+        assertThat(toString).contains("parent_id=2");
+        assertThat(toString).contains("parent_name=Technology");
         assertThat(toString).contains("children=");
     }
 }

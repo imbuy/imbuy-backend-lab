@@ -15,6 +15,6 @@ import java.util.Optional;
 public interface FavoriteRepository extends JpaRepository<Favorite, FavoriteId> {
     Optional<Favorite> findByUserAndLot(User user, Lot lot);
 
-    @Query("SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END FROM Favorite f WHERE f.user.id = :userId AND f.lot.id = :lotId")
-    boolean existsByUserIdAndLotId(@Param("userId") Long userId, @Param("lotId") Long lotId);
+    @Query("SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END FROM Favorite f WHERE f.user.id = :user_id AND f.lot.id = :lot_id")
+    boolean existsByUserIdAndLotId(@Param("user_id") Long userId, @Param("lot_id") Long lotId);
 }

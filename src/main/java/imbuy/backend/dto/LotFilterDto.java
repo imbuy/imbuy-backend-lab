@@ -5,7 +5,7 @@ import imbuy.backend.enums.LotStatus;
 public record LotFilterDto(
         String title,
         LotStatus status,
-        Long categoryId,
-        Long ownerId,
-        Boolean activeOnly
+        Long category_id,
+        Long owner_id,
+        Boolean active_only
 ) {}

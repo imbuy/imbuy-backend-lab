@@ -9,14 +9,14 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class})
 public interface LotMapper {
 
-    @Mapping(target = "ownerId", source = "owner.id")
-    @Mapping(target = "ownerUsername", source = "owner.username")
-    @Mapping(target = "categoryId", source = "category.id")
-    @Mapping(target = "categoryName", source = "category.name")
-    @Mapping(target = "bidCount", ignore = true)
-    @Mapping(target = "winnerId", ignore = true)
-    @Mapping(target = "winnerUsername", ignore = true)
-    @Mapping(target = "isFavorite", ignore = true)
-    @Mapping(target = "rejectionReason", ignore = true)
+    @Mapping(target = "owner_id", source = "owner.id")
+    @Mapping(target = "owner_username", source = "owner.username")
+    @Mapping(target = "category_id", source = "category.id")
+    @Mapping(target = "category_name", source = "category.name")
+    @Mapping(target = "bid_count", ignore = true)
+    @Mapping(target = "winner_id", ignore = true)
+    @Mapping(target = "winner_username", ignore = true)
+    @Mapping(target = "is_favorite", ignore = true)
+    @Mapping(target = "rejection_reason", ignore = true)
     LotDto mapToDto(Lot lot, @Context Long currentUserId);
 }

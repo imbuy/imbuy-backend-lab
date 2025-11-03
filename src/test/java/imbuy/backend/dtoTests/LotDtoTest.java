@@ -107,22 +107,22 @@ class LotDtoTest {
         assertThat(lotDto.id()).isEqualTo(1L);
         assertThat(lotDto.title()).isEqualTo("Test Lot");
         assertThat(lotDto.description()).isEqualTo("Test Description");
-        assertThat(lotDto.startPrice()).isEqualByComparingTo("200.00");
-        assertThat(lotDto.currentPrice()).isEqualByComparingTo("250.00");
-        assertThat(lotDto.bidStep()).isEqualByComparingTo("20.00");
-        assertThat(lotDto.ownerId()).isEqualTo(10L);
-        assertThat(lotDto.ownerUsername()).isEqualTo("testowner");
-        assertThat(lotDto.categoryId()).isEqualTo(5L);
-        assertThat(lotDto.categoryName()).isEqualTo("Books");
+        assertThat(lotDto.start_price()).isEqualByComparingTo("200.00");
+        assertThat(lotDto.current_price()).isEqualByComparingTo("250.00");
+        assertThat(lotDto.bid_step()).isEqualByComparingTo("20.00");
+        assertThat(lotDto.owner_id()).isEqualTo(10L);
+        assertThat(lotDto.owner_username()).isEqualTo("testowner");
+        assertThat(lotDto.category_id()).isEqualTo(5L);
+        assertThat(lotDto.category_name()).isEqualTo("Books");
         assertThat(lotDto.status()).isEqualTo(LotStatus.COMPLETED);
-        assertThat(lotDto.startDate()).isEqualTo(startDate);
-        assertThat(lotDto.endDate()).isEqualTo(endDate);
-        assertThat(lotDto.createdAt()).isEqualTo(createdAt);
-        assertThat(lotDto.bidCount()).isEqualTo(15);
-        assertThat(lotDto.isFavorite()).isFalse();
-        assertThat(lotDto.rejectionReason()).isEqualTo("Invalid description");
-        assertThat(lotDto.winnerId()).isEqualTo(20L);
-        assertThat(lotDto.winnerUsername()).isEqualTo("winneruser");
+        assertThat(lotDto.start_date()).isEqualTo(startDate);
+        assertThat(lotDto.end_date()).isEqualTo(endDate);
+        assertThat(lotDto.created_at()).isEqualTo(createdAt);
+        assertThat(lotDto.bid_count()).isEqualTo(15);
+        assertThat(lotDto.is_favorite()).isFalse();
+        assertThat(lotDto.rejection_reason()).isEqualTo("Invalid description");
+        assertThat(lotDto.winner_id()).isEqualTo(20L);
+        assertThat(lotDto.winner_username()).isEqualTo("winneruser");
     }
 
     @Test
@@ -193,21 +193,21 @@ class LotDtoTest {
         assertThat(toString).contains("id=1");
         assertThat(toString).contains("title=Test Lot");
         assertThat(toString).contains("description=Test Description");
-        assertThat(toString).contains("startPrice=200.00");
-        assertThat(toString).contains("currentPrice=250.00");
-        assertThat(toString).contains("bidStep=20.00");
-        assertThat(toString).contains("ownerId=10");
-        assertThat(toString).contains("ownerUsername=testowner");
-        assertThat(toString).contains("categoryId=5");
-        assertThat(toString).contains("categoryName=Books");
+        assertThat(toString).contains("start_price=200.00");
+        assertThat(toString).contains("current_price=250.00");
+        assertThat(toString).contains("bid_step=20.00");
+        assertThat(toString).contains("owner_id=10");
+        assertThat(toString).contains("owner_username=testowner");
+        assertThat(toString).contains("category_id=5");
+        assertThat(toString).contains("category_name=Books");
         assertThat(toString).contains("status=COMPLETED");
-        assertThat(toString).contains("startDate=" + startDate);
-        assertThat(toString).contains("endDate=" + endDate);
-        assertThat(toString).contains("createdAt=" + createdAt);
-        assertThat(toString).contains("bidCount=15");
-        assertThat(toString).contains("isFavorite=false");
-        assertThat(toString).contains("rejectionReason=Invalid description");
-        assertThat(toString).contains("winnerId=20");
-        assertThat(toString).contains("winnerUsername=winneruser");
+        assertThat(toString).contains("start_date=" + startDate);
+        assertThat(toString).contains("end_date=" + endDate);
+        assertThat(toString).contains("created_at=" + createdAt);
+        assertThat(toString).contains("bid_count=15");
+        assertThat(toString).contains("is_favorite=false");
+        assertThat(toString).contains("rejection_reason=Invalid description");
+        assertThat(toString).contains("winner_id=20");
+        assertThat(toString).contains("winner_username=winneruser");
     }
 }
