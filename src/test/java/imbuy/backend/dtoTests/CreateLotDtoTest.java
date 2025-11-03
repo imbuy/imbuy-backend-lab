@@ -123,11 +123,11 @@ class CreateLotDtoTest {
 
         assertThat(dto.title()).isEqualTo("Test Lot");
         assertThat(dto.description()).isEqualTo("Test Description");
-        assertThat(dto.startPrice()).isEqualByComparingTo("150.75");
-        assertThat(dto.bidStep()).isEqualByComparingTo("15.50");
-        assertThat(dto.categoryId()).isEqualTo(5L);
-        assertThat(dto.startDate()).isEqualTo(start);
-        assertThat(dto.endDate()).isEqualTo(end);
+        assertThat(dto.start_price()).isEqualByComparingTo("150.75");
+        assertThat(dto.bid_step()).isEqualByComparingTo("15.50");
+        assertThat(dto.category_id()).isEqualTo(5L);
+        assertThat(dto.start_date()).isEqualTo(start);
+        assertThat(dto.end_date()).isEqualTo(end);
     }
 
     @Test

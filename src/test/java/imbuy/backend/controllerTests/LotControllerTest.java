@@ -40,22 +40,22 @@ class LotControllerTest {
                 1L,                      // id
                 "Test Lot",              // title
                 "Description",           // description
-                BigDecimal.valueOf(100), // startPrice
-                BigDecimal.valueOf(110), // currentPrice
-                BigDecimal.valueOf(10),  // bidStep
-                1L,                      // ownerId
-                "testuser",              // ownerUsername
-                2L,                      // categoryId
-                "Electronics",           // categoryName
+                BigDecimal.valueOf(100), // start_price
+                BigDecimal.valueOf(110), // current_price
+                BigDecimal.valueOf(10),  // bid_step
+                1L,                      // owner_id
+                "testuser",              // owner_username
+                2L,                      // category_id
+                "Electronics",           // category_name
                 LotStatus.ACTIVE,        // status
-                LocalDateTime.now(),     // startDate
-                LocalDateTime.now().plusDays(1), // endDate
-                LocalDateTime.now(),     // createdAt
-                0,                       // bidCount
-                false,                   // isFavorite
-                null,                     // rejectionReason
-                null,                     // winnerId
-                null                      // winnerUsername
+                LocalDateTime.now(),     // start_date
+                LocalDateTime.now().plusDays(1), // end_date
+                LocalDateTime.now(),     // created_at
+                0,                       // bid_count
+                false,                   // is_favorite
+                null,                     // rejection_reason
+                null,                     // winner_id
+                null                      // winner_username
         );
 
         lotPageResponse = new PageResponse<>(List.of(lotDto), 0, 20, false, false);

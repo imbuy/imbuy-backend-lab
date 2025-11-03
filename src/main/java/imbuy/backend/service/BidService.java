@@ -41,7 +41,7 @@ public class BidService {
     @Transactional
     public BidDto placeBid(Long lotId, CreateBidDto createBidDto) {
         Lot lot = lotService.getLotEntityById(lotId);
-        Long bidderId = createBidDto.bidderId();
+        Long bidderId = createBidDto.bidder_id();
         User bidder = userService.getUserById(bidderId);
         validateBid(lot, createBidDto.amount(), bidderId);
 

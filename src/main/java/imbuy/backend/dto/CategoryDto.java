@@ -9,7 +9,7 @@ public record CategoryDto(
         Long id,
         @NotBlank(message = "Category name is required")
         String name,
-        Long parentId,
-        String parentName,
+        Long parent_id,
+        String parent_name,
         List<CategoryDto> children
 ) {}

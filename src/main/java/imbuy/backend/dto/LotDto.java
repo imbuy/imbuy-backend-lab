@@ -16,23 +16,23 @@ public record LotDto(
         String description,
         @NotNull(message = "Start price is required")
         @DecimalMin(value = "0.0", inclusive = false, message = "Start price must be greater than 0")
-        BigDecimal startPrice,
-        BigDecimal currentPrice,
+        BigDecimal start_price,
+        BigDecimal current_price,
         @NotNull(message = "Bid step is required")
         @DecimalMin(value = "0.0", inclusive = false, message = "Bid step must be greater than 0")
-        BigDecimal bidStep,
-        Long ownerId,
-        String ownerUsername,
-        Long categoryId,
-        String categoryName,
+        BigDecimal bid_step,
+        Long owner_id,
+        String owner_username,
+        Long category_id,
+        String category_name,
         LotStatus status,
-        LocalDateTime startDate,
-        LocalDateTime endDate,
-        LocalDateTime createdAt,
-        Integer bidCount,
-        Boolean isFavorite,
-        String rejectionReason,
-        Long winnerId,
-        String winnerUsername
+        LocalDateTime start_date,
+        LocalDateTime end_date,
+        LocalDateTime created_at,
+        Integer bid_count,
+        Boolean is_favorite,
+        String rejection_reason,
+        Long winner_id,
+        String winner_username
 ) {}
 

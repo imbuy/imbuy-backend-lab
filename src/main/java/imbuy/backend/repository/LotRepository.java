@@ -16,12 +16,12 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
     @Query("SELECT l FROM Lot l WHERE " +
             "(:title IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
             "(:status IS NULL OR l.status = :status) AND " +
-            "(:categoryId IS NULL OR l.category.id = :categoryId) AND " +
-            "(:ownerId IS NULL OR l.owner.id = :ownerId)")
+            "(:category_id IS NULL OR l.category.id = :category_id) AND " +
+            "(:owner_id IS NULL OR l.owner.id = :owner_id)")
     Page<Lot> findByFilters(@Param("title") String title,
                             @Param("status") LotStatus status,
-                            @Param("categoryId") Long categoryId,
-                            @Param("ownerId") Long ownerId,
+                            @Param("category_id") Long categoryId,
+                            @Param("owner_id") Long ownerId,
                             Pageable pageable);
 
 }

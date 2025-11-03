@@ -43,15 +43,15 @@ public class CategoryService {
     }
 
     public CategoryDto createCategory(CategoryDto categoryDto) {
-        if (categoryRepository.existsByNameAndParentId(categoryDto.name(), categoryDto.parentId())) {
+        if (categoryRepository.existsByNameAndParentId(categoryDto.name(), categoryDto.parent_id())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category with this name already exists");
         }
 
         Category category = new Category();
         category.setName(categoryDto.name());
 
-        if (categoryDto.parentId() != null) {
-            Category parent = categoryRepository.findById(categoryDto.parentId())
+        if (categoryDto.parent_id() != null) {
+            Category parent = categoryRepository.findById(categoryDto.parent_id())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent category not found"));
             category.setParent(parent);
         }
@@ -66,8 +66,8 @@ public class CategoryService {
 
         category.setName(categoryDto.name());
 
-        if (categoryDto.parentId() != null) {
-            Category parent = categoryRepository.findById(categoryDto.parentId())
+        if (categoryDto.parent_id() != null) {
+            Category parent = categoryRepository.findById(categoryDto.parent_id())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent category not found"));
             category.setParent(parent);
         } else {

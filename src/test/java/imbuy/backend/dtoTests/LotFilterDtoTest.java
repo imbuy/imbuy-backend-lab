@@ -27,11 +27,11 @@ class LotFilterDtoTest {
     void lotFilterDto_DefaultValues_ShouldBeCorrect() {
         LotFilterDto filterDto = new LotFilterDto(null, null, null, null, false);
 
-        assertThat(filterDto.activeOnly()).isFalse();
+        assertThat(filterDto.active_only()).isFalse();
         assertThat(filterDto.title()).isNull();
         assertThat(filterDto.status()).isNull();
-        assertThat(filterDto.categoryId()).isNull();
-        assertThat(filterDto.ownerId()).isNull();
+        assertThat(filterDto.category_id()).isNull();
+        assertThat(filterDto.owner_id()).isNull();
     }
 
     @Test
@@ -40,8 +40,8 @@ class LotFilterDtoTest {
 
         assertThat(filterDto.title()).isEqualTo("Test");
         assertThat(filterDto.status()).isEqualTo(LotStatus.ACTIVE);
-        assertThat(filterDto.categoryId()).isEqualTo(1L);
-        assertThat(filterDto.ownerId()).isEqualTo(2L);
-        assertThat(filterDto.activeOnly()).isTrue();
+        assertThat(filterDto.category_id()).isEqualTo(1L);
+        assertThat(filterDto.owner_id()).isEqualTo(2L);
+        assertThat(filterDto.active_only()).isTrue();
     }
 }

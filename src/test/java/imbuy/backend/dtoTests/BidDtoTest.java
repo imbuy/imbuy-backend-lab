@@ -43,9 +43,9 @@ class BidDtoTest {
 
         assertThat(toString).contains("id=1");
         assertThat(toString).contains("amount=150.75");
-        assertThat(toString).contains("bidderId=2");
-        assertThat(toString).contains("bidderUsername=bidder123");
-        assertThat(toString).contains("createdAt=" + now);
+        assertThat(toString).contains("bidder_id=2");
+        assertThat(toString).contains("bidder_username=bidder123");
+        assertThat(toString).contains("created_at=" + now);
     }
 
     @Test
@@ -86,8 +86,8 @@ class BidDtoTest {
 
         assertThat(bidDto.id()).isEqualTo(1L);
         assertThat(bidDto.amount()).isEqualByComparingTo("150.75");
-        assertThat(bidDto.bidderId()).isEqualTo(2L);
-        assertThat(bidDto.bidderUsername()).isEqualTo("bidder123");
-        assertThat(bidDto.createdAt()).isEqualTo(now);
+        assertThat(bidDto.bidder_id()).isEqualTo(2L);
+        assertThat(bidDto.bidder_username()).isEqualTo("bidder123");
+        assertThat(bidDto.created_at()).isEqualTo(now);
     }
 }
