@@ -33,13 +33,13 @@ public class CategoryService {
 
     public PageResponse<CategoryDto> getAllCategories(Pageable pageable) {
         Page<Category> categories = categoryRepository.findAll(pageable);
-        return PageResponse.of(categories.map(categoryMapper::mapToDto));
+        return PageResponse.of(categories.map(categoryMapper::toDtoWithChildren));
     }
 
     public CategoryDto getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
-        return categoryMapper.mapToDto(category);
+        return categoryMapper.toDtoWithChildren(category);
     }
 
     public CategoryDto createCategory(CategoryDto categoryDto) {
@@ -57,7 +57,7 @@ public class CategoryService {
         }
 
         category = categoryRepository.save(category);
-        return categoryMapper.mapToDto(category);
+        return categoryMapper.toDtoWithChildren(category);
     }
 
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
@@ -75,7 +75,7 @@ public class CategoryService {
         }
 
         category = categoryRepository.save(category);
-        return categoryMapper.mapToDto(category);
+        return categoryMapper.toDtoWithChildren(category);
     }
 
 
