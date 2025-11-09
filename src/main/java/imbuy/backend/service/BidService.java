@@ -39,13 +39,22 @@ public class BidService {
     }
 
     @Transactional
-    public BidDto placeBid(Long lotId, CreateBidDto createBidDto) {
+    public BidDto placeBid(Long lotId, CreateBidDto createBidDto, Long currentUserId) {
         Lot lot = lotService.getLotEntityById(lotId);
-        Long bidderId = createBidDto.bidder_id();
-        User bidder = userService.getUserById(bidderId);
-        validateBid(lot, createBidDto.amount(), bidderId);
+        User bidder = userService.getUserById(currentUserId);
 
-        Bid bid = new Bid(lot, bidder, createBidDto.amount());
+        if (lot.getOwner().getId().equals(currentUserId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Owner cannot place a bid on their own lot");
+        }
+
+        validateBid(lot, createBidDto.amount(), currentUserId);
+
+        Bid bid = Bid.builder()
+                .lot(lot)
+                .bidder(bidder)
+                .amount(createBidDto.amount())
+                .build();
+
         bid = bidRepository.save(bid);
 
         lot.setCurrentPrice(createBidDto.amount());
@@ -53,7 +62,6 @@ public class BidService {
 
         return bidMapper.mapToDto(bid);
     }
-
 
     private void validateBid(Lot lot, BigDecimal amount, Long bidderId) {
         LocalDateTime now = LocalDateTime.now();

@@ -53,10 +53,8 @@ class LotControllerTest {
                 "Electronics",           // category_name
                 LotStatus.ACTIVE,        // status
                 LocalDateTime.now(),     // start_date
-                LocalDateTime.now().plusDays(1), // end_date
-                LocalDateTime.now(),     // created_at
+                LocalDateTime.now().plusDays(1),
                 0,                       // bid_count
-                false,                   // is_favorite
                 null,                     // rejection_reason
                 null,                     // winner_id
                 null                      // winner_username

@@ -49,17 +49,14 @@ class LotSchedulerIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Очистка данных
         bidRepository.deleteAll();
         lotRepository.deleteAll();
         userRepository.deleteAll();
 
-        // Создание тестовых пользователей
         testUser1 = new User("user1@test.com", "password", "user1");
         testUser2 = new User("user2@test.com", "password", "user2");
         userRepository.saveAll(List.of(testUser1, testUser2));
 
-        // Создание лота с истекшим временем и ставками
         expiredLotWithBids = Lot.builder()
                 .title("Expired Lot with Bids")
                 .description("Test description")

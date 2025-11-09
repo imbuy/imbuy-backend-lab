@@ -1,5 +1,6 @@
 package imbuy.backend.service;
 
+import imbuy.backend.domain.Bid;
 import imbuy.backend.domain.Category;
 import imbuy.backend.domain.Lot;
 import imbuy.backend.domain.User;
@@ -63,14 +64,15 @@ public class LotService {
     public LotDto createLot(CreateLotDto createLotDto, Long ownerId) {
         User owner = userService.getUserById(ownerId);
 
-        Lot lot = new Lot();
-        lot.setTitle(createLotDto.title());
-        lot.setDescription(createLotDto.description());
-        lot.setStartPrice(createLotDto.start_price());
-        lot.setCurrentPrice(createLotDto.start_price());
-        lot.setBidStep(createLotDto.bid_step());
-        lot.setOwner(owner);
-        lot.setStatus(LotStatus.PENDING_APPROVAL);
+        Lot lot = Lot.builder()
+                .title(createLotDto.title())
+                .description(createLotDto.description())
+                .startPrice(createLotDto.start_price())
+                .currentPrice(createLotDto.start_price())
+                .bidStep(createLotDto.bid_step())
+                .owner(owner)
+                .status(LotStatus.PENDING_APPROVAL)
+                .build();
 
         if (createLotDto.category_id() != null) {
             Category category = categoryRepository.findById(createLotDto.category_id())
@@ -81,7 +83,7 @@ public class LotService {
         lot.setStartDate(createLotDto.start_date() != null ? createLotDto.start_date() : LocalDateTime.now());
         lot.setEndDate(createLotDto.end_date());
 
-        lotRepository.save(lot);
+        lotRepository.saveAndFlush(lot);
         return lotMapper.mapToDto(lot, ownerId);
     }
 

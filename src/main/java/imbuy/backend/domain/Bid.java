@@ -37,10 +37,4 @@ public class Bid {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    public Bid(Lot lot, User bidder, BigDecimal amount) {
-        this.lot = lot;
-        this.bidder = bidder;
-        this.amount = amount;
-    }
 }

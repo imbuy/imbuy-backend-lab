@@ -16,7 +16,6 @@ class RegisterRequestDtoTest {
 
     @Test
     void registerRequest_ValidData_ShouldPassValidation() {
-        // создаём record через конструктор
         RegisterRequest registerRequest = new RegisterRequest("test@example.com", "password123", "testuser");
 
         Set<ConstraintViolation<RegisterRequest>> violations = validator.validate(registerRequest);

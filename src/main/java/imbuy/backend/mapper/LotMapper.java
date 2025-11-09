@@ -16,7 +16,11 @@ public interface LotMapper {
     @Mapping(target = "bid_count", ignore = true)
     @Mapping(target = "winner_id", ignore = true)
     @Mapping(target = "winner_username", ignore = true)
-    @Mapping(target = "is_favorite", ignore = true)
     @Mapping(target = "rejection_reason", ignore = true)
+    @Mapping(target = "start_date", source = "startDate")
+    @Mapping(target = "end_date", source = "endDate")
+    @Mapping(target = "start_price", source = "startPrice")
+    @Mapping(target = "current_price", source = "currentPrice")
+    @Mapping(target = "bid_step", source = "bidStep")
     LotDto mapToDto(Lot lot, @Context Long currentUserId);
 }

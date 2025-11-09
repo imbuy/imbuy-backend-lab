@@ -17,14 +17,14 @@ class CreateBidDtoTest {
 
     @Test
     void createBidDto_ValidData_ShouldPassValidation() {
-        CreateBidDto dto = new CreateBidDto(new BigDecimal("100.5"), 1L);
+        CreateBidDto dto = new CreateBidDto(new BigDecimal("100.5"));
         Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(dto);
         assertThat(violations).isEmpty();
     }
 
     @Test
     void createBidDto_NullAmount_ShouldFailValidation() {
-        CreateBidDto dto = new CreateBidDto(null, null);
+        CreateBidDto dto = new CreateBidDto(null);
         Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(dto);
         assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage()).isEqualTo("Amount is required");
@@ -32,7 +32,7 @@ class CreateBidDtoTest {
 
     @Test
     void createBidDto_ZeroAmount_ShouldFailValidation() {
-        CreateBidDto dto = new CreateBidDto(BigDecimal.ZERO, 1L);
+        CreateBidDto dto = new CreateBidDto(BigDecimal.ZERO);
         Set<ConstraintViolation<CreateBidDto>> violations = validator.validate(dto);
         assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage()).isEqualTo("Amount must be greater than 0");
@@ -40,9 +40,9 @@ class CreateBidDtoTest {
 
     @Test
     void createBidDto_EqualsAndHashCode_ShouldWorkCorrectly() {
-        CreateBidDto dto1 = new CreateBidDto(new BigDecimal("10"),1L);
-        CreateBidDto dto2 = new CreateBidDto(new BigDecimal("10"),1L);
-        CreateBidDto diff = new CreateBidDto(new BigDecimal("20"),1L);
+        CreateBidDto dto1 = new CreateBidDto(new BigDecimal("10"));
+        CreateBidDto dto2 = new CreateBidDto(new BigDecimal("10"));
+        CreateBidDto diff = new CreateBidDto(new BigDecimal("20"));
 
         assertThat(dto1).isEqualTo(dto2);
         assertThat(dto1).isNotEqualTo(diff);

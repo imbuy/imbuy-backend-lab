@@ -4,8 +4,6 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
 
 public record BidDto(
         Long id,
@@ -13,6 +11,5 @@ public record BidDto(
         @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than 0")
         BigDecimal amount,
         Long bidder_id,
-        String bidder_username,
-        LocalDateTime created_at
+        String bidder_username
 ) {}

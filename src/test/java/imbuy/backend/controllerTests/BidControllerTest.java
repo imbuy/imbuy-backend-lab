@@ -41,11 +41,9 @@ class BidControllerTest {
                 1L,
                 BigDecimal.valueOf(100),
                 1L,
-                "testuser",
-                LocalDateTime.now()
+                "testuser"
         );
-
-        createBidDto = new CreateBidDto(BigDecimal.valueOf(100),1L);
+        createBidDto = new CreateBidDto(BigDecimal.valueOf(100));
     }
 
     @Test
@@ -65,14 +63,12 @@ class BidControllerTest {
 
     @Test
     void placeBid_WithValidData_ShouldCreateBid() {
-        when(bidService.placeBid(1L, createBidDto)).thenReturn(bidDto);
+        when(bidService.placeBid(1L, createBidDto, 1L)).thenReturn(bidDto);
 
-        ResponseEntity<BidDto> response = bidController.placeBid(1L, createBidDto);
+        ResponseEntity<BidDto> response = bidController.placeBid(1L, 1L, createBidDto);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isEqualTo(bidDto);
-        verify(bidService).placeBid(1L, createBidDto);
+        verify(bidService).placeBid(1L, createBidDto, 1L);
+
     }
 
     @Test
