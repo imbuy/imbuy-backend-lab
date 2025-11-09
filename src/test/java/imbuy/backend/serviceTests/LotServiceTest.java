@@ -37,7 +37,6 @@ class LotServiceTest {
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
-        testUser.setRoles(Set.of("USER"));
 
         testLot = new Lot();
         testLot.setId(1L);

@@ -28,9 +28,4 @@ public class UserCategory {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    public UserCategory(User user, Category category) {
-        this.user = user;
-        this.category = category;
-    }
 }

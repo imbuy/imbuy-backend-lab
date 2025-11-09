@@ -23,22 +23,6 @@
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
         </createTable>
 
-        <!-- USER_ROLES для Spring Security -->
-        <createTable tableName="user_roles">
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="role" type="varchar(50)">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-
-        <addPrimaryKey tableName="user_roles" columnNames="user_id, role" constraintName="pk_user_roles"/>
-        <addForeignKeyConstraint constraintName="fk_user_roles_user"
-                                 baseTableName="user_roles" baseColumnNames="user_id"
-                                 referencedTableName="users" referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
-
         <!-- CATEGORIES -->
         <createTable tableName="categories">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -110,18 +94,6 @@
 
         <addPrimaryKey tableName="user_categories" columnNames="user_id, category_id" constraintName="pk_user_categories"/>
 
-        <!-- FAVORITES (Many-to-Many с дополнительным полем) -->
-        <createTable tableName="favorites">
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="lot_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
-        </createTable>
-
-        <addPrimaryKey tableName="favorites" columnNames="user_id, lot_id" constraintName="pk_favorites"/>
 
         <!-- Foreign Keys -->
         <addForeignKeyConstraint constraintName="fk_lots_owner"
@@ -148,24 +120,8 @@
                                  baseTableName="user_categories" baseColumnNames="category_id"
                                  referencedTableName="categories" referencedColumnNames="id"
                                  onDelete="CASCADE"/>
-        <addForeignKeyConstraint constraintName="fk_favorites_user"
-                                 baseTableName="favorites" baseColumnNames="user_id"
-                                 referencedTableName="users" referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
-        <addForeignKeyConstraint constraintName="fk_favorites_lot"
-                                 baseTableName="favorites" baseColumnNames="lot_id"
-                                 referencedTableName="lots" referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
 
-    </changeSet>
-    <changeSet id="insert-admin" author="imbuy">
-        <sql>
-            INSERT INTO users (email, password, username, balance, created_at)
-            VALUES ('admin@imbuy.com',
-                    '$2a$10$kfVHTZ24jK8ZQwjlBGCVUOkeCYYZg9Bkej4IyOlhxymtmTVsWL8m.',
-                    'admin', 0.00, CURRENT_TIMESTAMP)
-                ON CONFLICT (email) DO NOTHING;
-        </sql>
+
     </changeSet>
 
     <changeSet id="add-winner-id-to-lots" author="imbuy">

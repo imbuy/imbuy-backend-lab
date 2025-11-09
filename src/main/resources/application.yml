@@ -12,7 +12,7 @@ springdoc:
 
 spring:
   datasource:
-    url: jdbc:postgresql://db:5432/imbuy
+    url: jdbc:postgresql://localhost:5432/imbuy
     username: imbuy
     password: secret
     driver-class-name: org.postgresql.Driver
@@ -23,4 +23,6 @@ spring:
   liquibase:
     change-log: classpath:db/changelog/changelog.xml
     enabled: true
-
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false

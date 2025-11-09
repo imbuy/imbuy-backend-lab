@@ -38,9 +38,10 @@ public class BidController {
     @Operation(summary = "Place a bid on a lot")
     public ResponseEntity<BidDto> placeBid(
             @PathVariable Long lotId,
+            @RequestParam Long currentUserId,
             @Valid @RequestBody CreateBidDto createBidDto) {
 
-        BidDto bid = bidService.placeBid(lotId, createBidDto);
+        BidDto bid = bidService.placeBid(lotId, createBidDto, currentUserId);
         return new ResponseEntity<>(bid, HttpStatus.CREATED);
     }
 

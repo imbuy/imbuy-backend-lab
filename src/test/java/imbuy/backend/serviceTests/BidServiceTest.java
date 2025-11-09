@@ -60,15 +60,19 @@ class BidServiceTest {
 
     @Test
     void getWinningBid_WithExistingBids_ShouldReturnHighestBid() {
-        Bid winningBid = new Bid(activeLot, bidder, BigDecimal.valueOf(150));
+        Bid winningBid = Bid.builder()
+                .lot(activeLot)
+                .bidder(bidder)
+                .amount(BigDecimal.valueOf(150))
+                .build();
         winningBid.setId(1L);
+
 
         BidDto winningBidDto = new BidDto(
                 1L,                      // id
                 BigDecimal.valueOf(150), // amount
                 2L,                      // bidderId
-                "bidder",                // bidderUsername
-                LocalDateTime.now()      // createdAt
+                "bidder"
         );
 
         when(bidRepository.findTopByLotIdOrderByAmountDesc(1L)).thenReturn(Optional.of(winningBid));

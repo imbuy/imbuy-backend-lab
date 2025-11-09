@@ -46,7 +46,11 @@ class LotServiceIntegrationTest extends AbstractIntegrationTest {
         testUser = new User("test@example.com", "password", "testuser");
         testUser = userRepository.save(testUser);
 
-        testCategory = new Category("Electronics");
+        testCategory = Category.builder()
+                .id(1L)
+                .name("Electronics")
+                .children(null)
+                .build();
         testCategory = categoryRepository.save(testCategory);
     }
 

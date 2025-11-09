@@ -13,10 +13,10 @@ services:
   app:
     build: .
     secrets:
-       - jwt_private_key
+      - jwt_private_key
     depends_on: [db]
     environment:
-      JWT_TOKEN: vaCnfzEHxoBncФСUocjUIANP/Lg4FWfjAnESxMhqN13hiiyAMJXHy2ns64yQ7rIQIWN9qZG0EFMKS9Uw==
+      JWT_TOKEN: wAXVX8QpBRVR6Nvn2aDrYPguBB4GBuCyyyp+EcqAQZqTDIe6kUCVm8NrvtX9xlOXQDMpWays8gvWIo4tGkqwNQ==
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/imbuy
       SPRING_DATASOURCE_USERNAME: imbuy
       SPRING_DATASOURCE_PASSWORD: secret
@@ -25,6 +25,6 @@ services:
       - "8080:8080"
 secrets:
   jwt_private_key:
-   file: ./private.key
+    file: ./private.key
 volumes:
   db_data:

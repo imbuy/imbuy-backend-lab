@@ -72,7 +72,4 @@ public class Lot {
 
     @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Bid> bids = new HashSet<>();
-
-    @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Favorite> favorites = new HashSet<>();
 }

@@ -33,9 +33,7 @@ class LotDtoTest {
                 LotStatus.ACTIVE,
                 LocalDateTime.now().minusHours(1),
                 LocalDateTime.now().plusHours(1),
-                LocalDateTime.now(),
                 5,
-                true,
                 null,
                 3L,
                 "winner123"
@@ -62,9 +60,7 @@ class LotDtoTest {
                 LotStatus.ACTIVE,
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
-                LocalDateTime.now(),
                 0,
-                false,
                 null,
                 null,
                 null
@@ -96,9 +92,7 @@ class LotDtoTest {
                 LotStatus.COMPLETED,
                 startDate,
                 endDate,
-                createdAt,
                 15,
-                false,
                 "Invalid description",
                 20L,
                 "winneruser"
@@ -117,9 +111,7 @@ class LotDtoTest {
         assertThat(lotDto.status()).isEqualTo(LotStatus.COMPLETED);
         assertThat(lotDto.start_date()).isEqualTo(startDate);
         assertThat(lotDto.end_date()).isEqualTo(endDate);
-        assertThat(lotDto.created_at()).isEqualTo(createdAt);
         assertThat(lotDto.bid_count()).isEqualTo(15);
-        assertThat(lotDto.is_favorite()).isFalse();
         assertThat(lotDto.rejection_reason()).isEqualTo("Invalid description");
         assertThat(lotDto.winner_id()).isEqualTo(20L);
         assertThat(lotDto.winner_username()).isEqualTo("winneruser");
@@ -129,26 +121,25 @@ class LotDtoTest {
     void lotDto_EqualsAndHashCode_ShouldWorkCorrectly() {
         LocalDateTime startDate = LocalDateTime.now().minusHours(1);
         LocalDateTime endDate = LocalDateTime.now().plusHours(1);
-        LocalDateTime createdAt = LocalDateTime.now();
 
         LotDto dto1 = new LotDto(
                 1L, "Test Lot", null, new BigDecimal("100.00"), null,
                 new BigDecimal("10.00"), null, null, null, null,
-                LotStatus.ACTIVE, startDate, endDate, createdAt, null, null,
+                LotStatus.ACTIVE, startDate, endDate, null,
                 null, null, null
         );
 
         LotDto dto2 = new LotDto(
                 1L, "Test Lot", null, new BigDecimal("100.00"), null,
                 new BigDecimal("10.00"), null, null, null, null,
-                LotStatus.ACTIVE, startDate, endDate, createdAt, null, null,
+                LotStatus.ACTIVE, startDate, endDate, null,
                 null, null, null
         );
 
         LotDto differentDto = new LotDto(
                 2L, "Different Lot", null, null, null, null, null,
-                null, null, null, null, null, null, null,
-                null, null, null, null, null
+                null, null, null, null, null, null,
+                null, null, null, null
         );
 
         assertThat(dto1).isEqualTo(dto2);
@@ -158,56 +149,5 @@ class LotDtoTest {
 
         assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
         assertThat(dto1.hashCode()).isNotEqualTo(differentDto.hashCode());
-    }
-
-    @Test
-    void lotDto_ToString_ShouldContainAllFields() {
-        LocalDateTime startDate = LocalDateTime.now().minusHours(1);
-        LocalDateTime endDate = LocalDateTime.now().plusHours(1);
-        LocalDateTime createdAt = LocalDateTime.now();
-
-        LotDto lotDto = new LotDto(
-                1L,
-                "Test Lot",
-                "Test Description",
-                new BigDecimal("200.00"),
-                new BigDecimal("250.00"),
-                new BigDecimal("20.00"),
-                10L,
-                "testowner",
-                5L,
-                "Books",
-                LotStatus.COMPLETED,
-                startDate,
-                endDate,
-                createdAt,
-                15,
-                false,
-                "Invalid description",
-                20L,
-                "winneruser"
-        );
-
-        String toString = lotDto.toString();
-
-        assertThat(toString).contains("id=1");
-        assertThat(toString).contains("title=Test Lot");
-        assertThat(toString).contains("description=Test Description");
-        assertThat(toString).contains("start_price=200.00");
-        assertThat(toString).contains("current_price=250.00");
-        assertThat(toString).contains("bid_step=20.00");
-        assertThat(toString).contains("owner_id=10");
-        assertThat(toString).contains("owner_username=testowner");
-        assertThat(toString).contains("category_id=5");
-        assertThat(toString).contains("category_name=Books");
-        assertThat(toString).contains("status=COMPLETED");
-        assertThat(toString).contains("start_date=" + startDate);
-        assertThat(toString).contains("end_date=" + endDate);
-        assertThat(toString).contains("created_at=" + createdAt);
-        assertThat(toString).contains("bid_count=15");
-        assertThat(toString).contains("is_favorite=false");
-        assertThat(toString).contains("rejection_reason=Invalid description");
-        assertThat(toString).contains("winner_id=20");
-        assertThat(toString).contains("winner_username=winneruser");
     }
 }
