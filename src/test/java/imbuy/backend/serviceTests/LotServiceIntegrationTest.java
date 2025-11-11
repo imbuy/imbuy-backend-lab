@@ -43,13 +43,15 @@ class LotServiceIntegrationTest extends AbstractIntegrationTest {
         categoryRepository.deleteAll();
         userRepository.deleteAll();
 
-        testUser = new User("test@example.com", "password", "testuser");
+        testUser = User.builder()
+                .email("test@example.com")
+                .password("password")
+                .username("testuser")
+                .build();
         testUser = userRepository.save(testUser);
 
         testCategory = Category.builder()
-                .id(1L)
                 .name("Electronics")
-                .children(null)
                 .build();
         testCategory = categoryRepository.save(testCategory);
     }
@@ -62,7 +64,6 @@ class LotServiceIntegrationTest extends AbstractIntegrationTest {
                 BigDecimal.valueOf(100),
                 BigDecimal.valueOf(10),
                 testCategory.getId(),
-                testUser.getId(),
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1)
         );
@@ -81,14 +82,15 @@ class LotServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void updateLot_AsOwner_ShouldUpdateLot() {
-        Lot lot = new Lot();
-        lot.setTitle("Original Title");
-        lot.setDescription("Original Description");
-        lot.setStartPrice(BigDecimal.valueOf(100));
-        lot.setCurrentPrice(BigDecimal.valueOf(100));
-        lot.setBidStep(BigDecimal.valueOf(10));
-        lot.setOwner(testUser);
-        lot.setStatus(LotStatus.DRAFT);
+        Lot lot = Lot.builder()
+                .title("Original Title")
+                .description("Original Description")
+                .startPrice(BigDecimal.valueOf(100))
+                .currentPrice(BigDecimal.valueOf(100))
+                .bidStep(BigDecimal.valueOf(10))
+                .owner(testUser)
+                .status(LotStatus.DRAFT)
+                .build();
         lot = lotRepository.save(lot);
 
         UpdateLotDto updateDto = new UpdateLotDto(

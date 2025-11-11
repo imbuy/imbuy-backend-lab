@@ -1,6 +1,5 @@
 package imbuy.backend.service;
 
-import imbuy.backend.domain.Bid;
 import imbuy.backend.domain.Category;
 import imbuy.backend.domain.Lot;
 import imbuy.backend.domain.User;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -64,6 +64,12 @@ public class LotService {
     public LotDto createLot(CreateLotDto createLotDto, Long ownerId) {
         User owner = userService.getUserById(ownerId);
 
+        Category category = null;
+        if (createLotDto.category_id() != null) {
+            category = categoryRepository.findById(createLotDto.category_id())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+        }
+
         Lot lot = Lot.builder()
                 .title(createLotDto.title())
                 .description(createLotDto.description())
@@ -71,19 +77,13 @@ public class LotService {
                 .currentPrice(createLotDto.start_price())
                 .bidStep(createLotDto.bid_step())
                 .owner(owner)
+                .category(category)
                 .status(LotStatus.PENDING_APPROVAL)
+                .startDate(createLotDto.start_date() != null ? createLotDto.start_date() : LocalDateTime.now())
+                .endDate(createLotDto.end_date())
                 .build();
 
-        if (createLotDto.category_id() != null) {
-            Category category = categoryRepository.findById(createLotDto.category_id())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
-            lot.setCategory(category);
-        }
-
-        lot.setStartDate(createLotDto.start_date() != null ? createLotDto.start_date() : LocalDateTime.now());
-        lot.setEndDate(createLotDto.end_date());
-
-        lotRepository.saveAndFlush(lot);
+        lotRepository.save(lot);
         return lotMapper.mapToDto(lot, ownerId);
     }
 
@@ -96,10 +96,12 @@ public class LotService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lot is not awaiting approval");
         }
 
-        lot.setStatus(LotStatus.ACTIVE);
-        lotRepository.save(lot);
+        Lot updatedLot = lot.toBuilder()
+                .status(LotStatus.ACTIVE)
+                .build();
+        lotRepository.save(updatedLot);
 
-        return lotMapper.mapToDto(lot, currentUserId);
+        return lotMapper.mapToDto(updatedLot, currentUserId);
     }
 
     @Transactional
@@ -111,11 +113,12 @@ public class LotService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lot cannot be rejected");
         }
 
-        lot.setStatus(LotStatus.CANCELLED);
-        lotRepository.save(lot);
+        Lot updatedLot = lot.toBuilder()
+                .status(LotStatus.CANCELLED)
+                .build();
+        lotRepository.save(updatedLot);
 
-        LotDto dto = lotMapper.mapToDto(lot, currentUserId);
-        return dto;
+        return lotMapper.mapToDto(updatedLot, currentUserId);
     }
 
     @Transactional
@@ -127,13 +130,17 @@ public class LotService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot update lot in current status");
         }
 
-        if (updateLotDto.title() != null) lot.setTitle(updateLotDto.title());
-        if (updateLotDto.description() != null) lot.setDescription(updateLotDto.description());
-        if (updateLotDto.bid_step() != null) lot.setBidStep(updateLotDto.bid_step());
-        if (updateLotDto.end_date() != null) lot.setEndDate(updateLotDto.end_date());
+        Lot.LotBuilder lotBuilder = lot.toBuilder();
 
-        lotRepository.save(lot);
-        return lotMapper.mapToDto(lot, currentUserId);
+        if (updateLotDto.title() != null) lotBuilder.title(updateLotDto.title());
+        if (updateLotDto.description() != null) lotBuilder.description(updateLotDto.description());
+        if (updateLotDto.bid_step() != null) lotBuilder.bidStep(updateLotDto.bid_step());
+        if (updateLotDto.end_date() != null) lotBuilder.endDate(updateLotDto.end_date());
+
+        Lot updatedLot = lotBuilder.build();
+        lotRepository.save(updatedLot);
+
+        return lotMapper.mapToDto(updatedLot, currentUserId);
     }
 
     @Transactional
@@ -148,8 +155,13 @@ public class LotService {
         lotRepository.delete(lot);
     }
 
-    public void updateLotCurrentPrice(Lot lot) {
-        lotRepository.save(lot);
+    @Transactional
+    public void updateLotCurrentPrice(Long lotId, BigDecimal newPrice) {
+        Lot lot = getLotEntityById(lotId);
+        Lot updatedLot = lot.toBuilder()
+                .currentPrice(newPrice)
+                .build();
+        lotRepository.save(updatedLot);
     }
 
     private boolean hasFilters(LotFilterDto filter) {

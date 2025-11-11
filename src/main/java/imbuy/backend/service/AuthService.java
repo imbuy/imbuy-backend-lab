@@ -24,10 +24,11 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
         }
 
-        User user = new User();
-        user.setEmail(request.email());
-        user.setPassword(request.password());
-        user.setUsername(request.username());
+        User user = User.builder()
+                .email(request.email())
+                .password(request.password())
+                .username(request.username())
+                .build();
 
         userRepository.save(user);
         return user;
@@ -37,13 +38,15 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        user.setUsername(request.username());
-        if (request.password() != null && !request.password().isEmpty()) {
-            user.setPassword(request.password());
-        }
+        User updatedUser = user.toBuilder()
+                .username(request.username())
+                .password(request.password() != null && !request.password().isEmpty()
+                        ? request.password()
+                        : user.getPassword())
+                .build();
 
-        userRepository.save(user);
-        return userMapper.mapToDto(user);
+        userRepository.save(updatedUser);
+        return userMapper.mapToDto(updatedUser);
     }
 
     public PageResponse<UserDto> findAllUsers(Pageable pageable) {

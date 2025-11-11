@@ -41,21 +41,21 @@ public class CategoryService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
         return categoryMapper.toDtoWithChildren(category);
     }
-
     public CategoryDto createCategory(CategoryDto categoryDto) {
         if (categoryRepository.existsByNameAndParentId(categoryDto.name(), categoryDto.parent_id())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category with this name already exists");
         }
 
-        Category category = new Category();
-        category.setName(categoryDto.name());
+        var categoryBuilder = Category.builder()
+                .name(categoryDto.name());
 
         if (categoryDto.parent_id() != null) {
             Category parent = categoryRepository.findById(categoryDto.parent_id())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent category not found"));
-            category.setParent(parent);
+            categoryBuilder.parent(parent);
         }
 
+        Category category = categoryBuilder.build();
         category = categoryRepository.save(category);
         return categoryMapper.toDtoWithChildren(category);
     }
@@ -64,18 +64,20 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
 
-        category.setName(categoryDto.name());
+        var categoryBuilder = category.toBuilder()
+                .name(categoryDto.name());
 
         if (categoryDto.parent_id() != null) {
             Category parent = categoryRepository.findById(categoryDto.parent_id())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent category not found"));
-            category.setParent(parent);
+            categoryBuilder.parent(parent);
         } else {
-            category.setParent(null);
+            categoryBuilder.parent(null);
         }
 
-        category = categoryRepository.save(category);
-        return categoryMapper.toDtoWithChildren(category);
+        Category updatedCategory = categoryBuilder.build();
+        updatedCategory = categoryRepository.save(updatedCategory);
+        return categoryMapper.toDtoWithChildren(updatedCategory);
     }
 
 

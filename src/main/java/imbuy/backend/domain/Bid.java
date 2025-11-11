@@ -11,9 +11,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bids")
-@Getter
-@Setter
 @Builder
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Bid {

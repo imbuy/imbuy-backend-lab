@@ -89,12 +89,12 @@ class LotControllerTest {
 
     @Test
     void createLot_ShouldReturnCreatedLot() {
-        CreateLotDto createLotDto = new CreateLotDto("New Lot", "Desc", BigDecimal.valueOf(100), BigDecimal.valueOf(10),
-                1L, 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        CreateLotDto createLotDto = new CreateLotDto("New Lot", "Desc", BigDecimal.valueOf(100),
+                BigDecimal.valueOf(100), 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
 
         when(lotService.createLot(any(CreateLotDto.class), any(Long.class))).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.createLot(createLotDto);
+        ResponseEntity<LotDto> response = lotController.createLot(createLotDto, 1L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
