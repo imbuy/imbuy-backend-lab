@@ -15,11 +15,10 @@ import java.util.Set;
 
 @Entity
 @Table(name = "lots")
-@Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Getter
+@Builder(toBuilder = true)
 public class Lot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,5 +70,6 @@ public class Lot {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Bid> bids = new HashSet<>();
 }

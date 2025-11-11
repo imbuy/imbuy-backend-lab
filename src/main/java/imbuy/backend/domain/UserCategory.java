@@ -1,18 +1,16 @@
 package imbuy.backend.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Setter
-@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "user_categories")
-@NoArgsConstructor
 @IdClass(UserCategoryId.class)
 public class UserCategory {
     @Id

@@ -15,7 +15,4 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     Page<Bid> findByLotIdOrderByCreatedAtDesc(Long lotId, Pageable pageable);
 
     Optional<Bid> findTopByLotIdOrderByAmountDesc(Long lot_id);
-
-    @Query("SELECT COUNT(b) FROM Bid b WHERE b.lot.id = :lot_id")
-    Long countByLotId(@Param("lot_id") Long lot_id);
 }

@@ -19,7 +19,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -47,7 +46,7 @@ public class BidService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Owner cannot place a bid on their own lot");
         }
 
-        validateBid(lot, createBidDto.amount(), currentUserId);
+        validateBid(lot, createBidDto.amount());
 
         Bid bid = Bid.builder()
                 .lot(lot)
@@ -56,14 +55,11 @@ public class BidService {
                 .build();
 
         bid = bidRepository.save(bid);
-
-        lot.setCurrentPrice(createBidDto.amount());
-        lotService.updateLotCurrentPrice(lot);
-
+        lotService.updateLotCurrentPrice(lotId, createBidDto.amount());
         return bidMapper.mapToDto(bid);
     }
 
-    private void validateBid(Lot lot, BigDecimal amount, Long bidderId) {
+    private void validateBid(Lot lot, BigDecimal amount) {
         LocalDateTime now = LocalDateTime.now();
 
         if (lot.getStatus() != imbuy.backend.enums.LotStatus.ACTIVE) {
@@ -86,14 +82,6 @@ public class BidService {
         return bidRepository.findTopByLotIdOrderByAmountDesc(lotId)
                 .map(bidMapper::mapToDto)
                 .orElse(null);
-    }
-
-    public int countBidsByLot(Long lotId) {
-        return Math.toIntExact(bidRepository.countByLotId(lotId));
-    }
-
-    public Optional<Bid> getHighestBidByLot(Long lotId) {
-        return bidRepository.findTopByLotIdOrderByAmountDesc(lotId);
     }
 }
 

@@ -17,7 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -34,20 +33,24 @@ class LotServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = new User();
-        testUser.setId(1L);
-        testUser.setUsername("testuser");
+        testUser = User.builder()
+                .id(1L)
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
 
-        testLot = new Lot();
-        testLot.setId(1L);
-        testLot.setTitle("Test Lot");
-        testLot.setStartPrice(BigDecimal.valueOf(100));
-        testLot.setCurrentPrice(BigDecimal.valueOf(100));
-        testLot.setBidStep(BigDecimal.valueOf(10));
-        testLot.setOwner(testUser);
-        testLot.setStatus(LotStatus.PENDING_APPROVAL);
-        testLot.setStartDate(LocalDateTime.now());
-        testLot.setEndDate(LocalDateTime.now().plusDays(1));
+        testLot = Lot.builder()
+                .id(1L)
+                .title("Test Lot")
+                .startPrice(BigDecimal.valueOf(100))
+                .currentPrice(BigDecimal.valueOf(100))
+                .bidStep(BigDecimal.valueOf(10))
+                .owner(testUser)
+                .status(LotStatus.PENDING_APPROVAL)
+                .startDate(LocalDateTime.now())
+                .endDate(LocalDateTime.now().plusDays(1))
+                .build();
     }
 
     @Test
@@ -71,8 +74,10 @@ class LotServiceTest {
 
     @Test
     void updateLot_WithActiveStatus_ShouldThrowException() {
-        testLot.setStatus(LotStatus.ACTIVE);
-        when(lotRepository.findById(1L)).thenReturn(Optional.of(testLot));
+        Lot activeLot = testLot.toBuilder()
+                .status(LotStatus.ACTIVE)
+                .build();
+        when(lotRepository.findById(1L)).thenReturn(Optional.of(activeLot));
         UpdateLotDto updateDto = new UpdateLotDto("Updated Title", null, null, null, null);
 
         assertThatThrownBy(() -> lotService.updateLot(1L, updateDto, 1L))
@@ -91,8 +96,10 @@ class LotServiceTest {
 
     @Test
     void deleteLot_WithActiveStatus_ShouldThrowException() {
-        testLot.setStatus(LotStatus.ACTIVE);
-        when(lotRepository.findById(1L)).thenReturn(Optional.of(testLot));
+        Lot activeLot = testLot.toBuilder()
+                .status(LotStatus.ACTIVE)
+                .build();
+        when(lotRepository.findById(1L)).thenReturn(Optional.of(activeLot));
 
         assertThatThrownBy(() -> lotService.deleteLot(1L, 1L))
                 .isInstanceOf(ResponseStatusException.class)
@@ -101,11 +108,13 @@ class LotServiceTest {
 
     @Test
     void deleteLot_WithValidConditions_ShouldDeleteLot() {
-        testLot.setStatus(LotStatus.DRAFT);
-        when(lotRepository.findById(1L)).thenReturn(Optional.of(testLot));
+        Lot draftLot = testLot.toBuilder()
+                .status(LotStatus.DRAFT)
+                .build();
+        when(lotRepository.findById(1L)).thenReturn(Optional.of(draftLot));
 
         lotService.deleteLot(1L, 1L);
 
-        verify(lotRepository).delete(testLot);
+        verify(lotRepository).delete(draftLot);
     }
 }

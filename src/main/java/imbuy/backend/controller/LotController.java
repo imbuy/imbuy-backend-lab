@@ -60,8 +60,9 @@ public class LotController {
 
     @PostMapping
     @Operation(summary = "Create a new lot")
-    public ResponseEntity<LotDto> createLot(@Valid @RequestBody CreateLotDto createLotDto) {
-        LotDto lot = lotService.createLot(createLotDto, createLotDto.owner_id());
+    public ResponseEntity<LotDto> createLot(@Valid @RequestBody CreateLotDto createLotDto,
+                                            @RequestParam Long currentUserId) {
+        LotDto lot = lotService.createLot(createLotDto, currentUserId);
         return new ResponseEntity<>(lot, HttpStatus.CREATED);
     }
 

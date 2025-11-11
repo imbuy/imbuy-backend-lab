@@ -9,9 +9,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "categories")
+@Builder(toBuilder = true)
 @Getter
-@Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Category {
@@ -27,11 +26,14 @@ public class Category {
     private Category parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Category> children = new HashSet<>();
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Lot> lots = new HashSet<>();
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<UserCategory> userCategories = new HashSet<>();
 }

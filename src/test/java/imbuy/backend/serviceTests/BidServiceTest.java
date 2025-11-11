@@ -40,38 +40,46 @@ class BidServiceTest {
 
     @BeforeEach
     void setUp() {
-        owner = new User("owner@example.com", "password", "owner");
-        owner.setId(1L);
+        owner = User.builder()
+                .email("owner@example.com")
+                .password("password")
+                .username("owner")
+                .id(1L)
+                .build();
 
-        bidder = new User("bidder@example.com", "password", "bidder");
-        bidder.setId(2L);
+        bidder = User.builder()
+                .email("bidder@example.com")
+                .password("password")
+                .username("bidder")
+                .id(2L)
+                .build();
 
-        activeLot = new Lot();
-        activeLot.setId(1L);
-        activeLot.setTitle("Test Lot");
-        activeLot.setStartPrice(BigDecimal.valueOf(100));
-        activeLot.setCurrentPrice(BigDecimal.valueOf(100));
-        activeLot.setBidStep(BigDecimal.valueOf(10));
-        activeLot.setStatus(LotStatus.ACTIVE);
-        activeLot.setOwner(owner);
-        activeLot.setStartDate(LocalDateTime.now().minusHours(1));
-        activeLot.setEndDate(LocalDateTime.now().plusHours(1));
+        activeLot = Lot.builder()
+                .id(1L)
+                .title("Test Lot")
+                .startPrice(BigDecimal.valueOf(100))
+                .currentPrice(BigDecimal.valueOf(100))
+                .bidStep(BigDecimal.valueOf(10))
+                .status(LotStatus.ACTIVE)
+                .owner(owner)
+                .startDate(LocalDateTime.now().minusHours(1))
+                .endDate(LocalDateTime.now().plusHours(1))
+                .build();
     }
 
     @Test
     void getWinningBid_WithExistingBids_ShouldReturnHighestBid() {
         Bid winningBid = Bid.builder()
+                .id(1L)
                 .lot(activeLot)
                 .bidder(bidder)
                 .amount(BigDecimal.valueOf(150))
                 .build();
-        winningBid.setId(1L);
-
 
         BidDto winningBidDto = new BidDto(
-                1L,                      // id
-                BigDecimal.valueOf(150), // amount
-                2L,                      // bidderId
+                1L,
+                BigDecimal.valueOf(150),
+                2L,
                 "bidder"
         );
 

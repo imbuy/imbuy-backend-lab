@@ -12,12 +12,12 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-@Setter
-@Getter
 @Entity
 @Table(name = "users")
+@Builder(toBuilder = true)
+@Getter
 @NoArgsConstructor
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,19 +26,17 @@ public class User {
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     @Column(unique = true, nullable = false)
-    @NonNull
     private String email;
 
     @NotBlank(message = "Password is required")
     @Column(nullable = false)
-    @NonNull
     private String password;
 
     @Size(max = 100)
-    @NonNull
     private String username;
 
     @Column(precision = 19, scale = 2)
+    @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
     @CreationTimestamp
@@ -46,11 +44,14 @@ public class User {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Lot> lots = new HashSet<>();
 
     @OneToMany(mappedBy = "bidder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Bid> bids = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<UserCategory> favoriteCategories = new HashSet<>();
 }

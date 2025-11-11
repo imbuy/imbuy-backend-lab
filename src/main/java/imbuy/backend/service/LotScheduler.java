@@ -27,7 +27,6 @@ public class LotScheduler {
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void closeExpiredLots() {
-
         ZoneId zone = ZoneId.of("Europe/Warsaw");
         LocalDateTime now = LocalDateTime.now(zone);
         log.info("Scheduler is working now: {}", now);
@@ -46,16 +45,7 @@ public class LotScheduler {
                 if (lot.getEndDate() != null && lot.getEndDate().isBefore(now)) {
                     log.info("Lot #{} ('{}') ends in {} — close it...", lot.getId(), lot.getTitle(), lot.getEndDate());
 
-                    lot.setStatus(LotStatus.COMPLETED);
-
-                    bidRepository.findTopByLotIdOrderByAmountDesc(lot.getId())
-                            .ifPresentOrElse(bid -> {
-                                lot.setWinner(bid.getBidder());
-                                log.info("Winner: user #{} ({}), bid = {}",
-                                        bid.getBidder().getId(), bid.getBidder().getUsername(), bid.getAmount());
-                            }, () -> log.info("Lot #{} has not bid, winner is not exist -", lot.getId()));
-
-                    lotRepository.save(lot);
+                    closeLotWithWinner(lot);
                     closedCount++;
                 }
             }
@@ -64,5 +54,20 @@ public class LotScheduler {
         } while (activeLots.hasNext());
 
         log.info("Scheduler has been worked. Closed {} lots.", closedCount);
+    }
+
+    private void closeLotWithWinner(Lot lot) {
+        Lot.LotBuilder lotBuilder = lot.toBuilder()
+                .status(LotStatus.COMPLETED);
+
+        bidRepository.findTopByLotIdOrderByAmountDesc(lot.getId())
+                .ifPresentOrElse(bid -> {
+                    lotBuilder.winner(bid.getBidder());
+                    log.info("Winner: user #{} ({}), bid = {}",
+                            bid.getBidder().getId(), bid.getBidder().getUsername(), bid.getAmount());
+                }, () -> log.info("Lot #{} has not bid, winner is not exist -", lot.getId()));
+
+        Lot updatedLot = lotBuilder.build();
+        lotRepository.save(updatedLot);
     }
 }

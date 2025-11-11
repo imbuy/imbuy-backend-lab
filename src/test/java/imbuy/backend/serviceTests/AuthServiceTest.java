@@ -46,8 +46,12 @@ class AuthServiceTest {
     void setUp() {
         registerRequest = new RegisterRequest("test@example.com", "password123", "testuser");
 
-        user = new User("test@example.com", "password123", "testuser");
-        user.setId(1L);
+        user = User.builder()
+                .email("test@example.com")
+                .password("password123")
+                .username("testuser")
+                .id(1L)
+                .build();
 
         userDto = new UserDto(1L, "test@example.com", "testuser");
     }

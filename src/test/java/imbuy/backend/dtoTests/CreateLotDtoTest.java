@@ -24,7 +24,6 @@ class CreateLotDtoTest {
                 new BigDecimal("100.00"),
                 new BigDecimal("10.00"),
                 1L,
-                1L,
                 LocalDateTime.now().plusHours(1),
                 LocalDateTime.now().plusDays(1)
         );
@@ -40,7 +39,6 @@ class CreateLotDtoTest {
                 "Description",
                 new BigDecimal("100.00"),
                 new BigDecimal("10.00"),
-                1L,
                 1L,
                 LocalDateTime.now().plusHours(1),
                 LocalDateTime.now().plusDays(1)
@@ -59,7 +57,6 @@ class CreateLotDtoTest {
                 null,
                 new BigDecimal("10.00"),
                 1L,
-                1L,
                 LocalDateTime.now().plusHours(1),
                 LocalDateTime.now().plusDays(1)
         );
@@ -77,7 +74,6 @@ class CreateLotDtoTest {
                 BigDecimal.ZERO,
                 new BigDecimal("10.00"),
                 1L,
-                1L,
                 LocalDateTime.now().plusHours(1),
                 LocalDateTime.now().plusDays(1)
         );
@@ -94,7 +90,6 @@ class CreateLotDtoTest {
                 "Description",
                 new BigDecimal("100.00"),
                 BigDecimal.ZERO,
-                1L,
                 1L,
                 LocalDateTime.now().plusHours(1),
                 LocalDateTime.now().plusDays(1)
@@ -116,7 +111,6 @@ class CreateLotDtoTest {
                 new BigDecimal("150.75"),
                 new BigDecimal("15.50"),
                 5L,
-                1L,
                 start,
                 end
         );
@@ -135,9 +129,9 @@ class CreateLotDtoTest {
         LocalDateTime start = LocalDateTime.now().plusHours(1);
         LocalDateTime end = LocalDateTime.now().plusDays(1);
 
-        CreateLotDto dto1 = new CreateLotDto("Test Lot", "Test Description", new BigDecimal("100.00"), new BigDecimal("10.00"), 1L, 1L,start, end);
-        CreateLotDto dto2 = new CreateLotDto("Test Lot", "Test Description", new BigDecimal("100.00"), new BigDecimal("10.00"), 1L,1L, start, end);
-        CreateLotDto different = new CreateLotDto("Different Lot", "Desc", new BigDecimal("100.00"), new BigDecimal("10.00"), 1L, 1L,start, end);
+        CreateLotDto dto1 = new CreateLotDto("Test Lot", "Test Description", new BigDecimal("100.00"), new BigDecimal("10.00"), 1L, start, end);
+        CreateLotDto dto2 = new CreateLotDto("Test Lot", "Test Description", new BigDecimal("100.00"), new BigDecimal("10.00"), 1L,start, end);
+        CreateLotDto different = new CreateLotDto("Different Lot", "Desc", new BigDecimal("100.00"), new BigDecimal("10.00"), 1L, start, end);
 
         assertThat(dto1).isEqualTo(dto2);
         assertThat(dto1).isNotEqualTo(different);
@@ -150,7 +144,7 @@ class CreateLotDtoTest {
         LocalDateTime start = LocalDateTime.now().plusHours(1);
         LocalDateTime end = LocalDateTime.now().plusDays(1);
 
-        CreateLotDto dto = new CreateLotDto("Test Lot", "Test Description", new BigDecimal("150.75"), new BigDecimal("15.50"), 5L, 1L,start, end);
+        CreateLotDto dto = new CreateLotDto("Test Lot", "Test Description", new BigDecimal("150.75"), new BigDecimal("15.50"), 5L, start, end);
 
         String str = dto.toString();
         assertThat(str).contains("Test Lot");
