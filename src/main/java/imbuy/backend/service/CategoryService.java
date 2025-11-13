@@ -41,6 +41,7 @@ public class CategoryService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
         return categoryMapper.toDtoWithChildren(category);
     }
+
     public CategoryDto createCategory(CategoryDto categoryDto) {
         if (categoryRepository.existsByNameAndParentId(categoryDto.name(), categoryDto.parent_id())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category with this name already exists");
@@ -94,5 +95,10 @@ public class CategoryService {
         }
 
         categoryRepository.delete(category);
+    }
+
+    public Category getCategoryToLotById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
     }
 }

@@ -6,9 +6,9 @@ import imbuy.backend.domain.User;
 import imbuy.backend.dto.*;
 import imbuy.backend.enums.LotStatus;
 import imbuy.backend.mapper.LotMapper;
-import imbuy.backend.repository.CategoryRepository;
 import imbuy.backend.repository.LotRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,25 +19,23 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LotService {
 
     private final LotRepository lotRepository;
-    private final CategoryRepository categoryRepository;
-    private final AuthService userService;
     private final LotMapper lotMapper;
+    private final CategoryService categoryService;
+    private final AuthService userService;
 
     @Transactional(readOnly = true)
-    public PageResponse<LotDto> getLots(LotFilterDto filter, Pageable pageable, Long currentUserId) {
+    public PageResponse<LotDto> getLots(LotFilterDto filter, Pageable pageable) {
         Page<Lot> lots;
 
         if (filter != null && hasFilters(filter)) {
             lots = lotRepository.findByFilters(
                     filter.title(),
-                    filter.status(),
-                    filter.category_id(),
-                    filter.owner_id(),
                     pageable
             );
         } else if (filter != null && Boolean.TRUE.equals(filter.active_only())) {
@@ -46,18 +44,18 @@ public class LotService {
             lots = lotRepository.findAll(pageable);
         }
 
-        return PageResponse.of(lots.map(lot -> lotMapper.mapToDto(lot, currentUserId)));
+        return PageResponse.of(lots.map(lotMapper::mapToDto));
     }
 
     @Transactional(readOnly = true)
     public LotDto getLotById(Long id) {
-        Lot lot = getLotEntityById(id);
-        return lotMapper.mapToDto(lot, null);
+        Lot lot = getLotToBidById(id);
+        return lotMapper.mapToDto(lot);
     }
 
-    public Lot getLotEntityById(Long id) {
-        return lotRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
+    @Transactional(readOnly = true)
+    public Page<Lot> getActiveLots(Pageable pageable) {
+        return lotRepository.findByStatus(LotStatus.ACTIVE, pageable);
     }
 
     @Transactional
@@ -66,8 +64,7 @@ public class LotService {
 
         Category category = null;
         if (createLotDto.category_id() != null) {
-            category = categoryRepository.findById(createLotDto.category_id())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+            category = categoryService.getCategoryToLotById(createLotDto.category_id());
         }
 
         Lot lot = Lot.builder()
@@ -84,12 +81,12 @@ public class LotService {
                 .build();
 
         lotRepository.save(lot);
-        return lotMapper.mapToDto(lot, ownerId);
+        return lotMapper.mapToDto(lot);
     }
 
     @Transactional
     public LotDto approveLot(Long lotId, Long currentUserId) {
-        Lot lot = getLotEntityById(lotId);
+        Lot lot = getLotToBidById(lotId);
         checkOwnership(lot, currentUserId);
 
         if (lot.getStatus() != LotStatus.PENDING_APPROVAL) {
@@ -101,12 +98,12 @@ public class LotService {
                 .build();
         lotRepository.save(updatedLot);
 
-        return lotMapper.mapToDto(updatedLot, currentUserId);
+        return lotMapper.mapToDto(updatedLot);
     }
 
     @Transactional
-    public LotDto cancelLot(Long lotId, Long currentUserId, String reason) {
-        Lot lot = getLotEntityById(lotId);
+    public LotDto cancelLot(Long lotId, Long currentUserId) {
+        Lot lot = getLotToBidById(lotId);
         checkOwnership(lot, currentUserId);
 
         if (lot.getStatus() != LotStatus.PENDING_APPROVAL) {
@@ -118,12 +115,12 @@ public class LotService {
                 .build();
         lotRepository.save(updatedLot);
 
-        return lotMapper.mapToDto(updatedLot, currentUserId);
+        return lotMapper.mapToDto(updatedLot);
     }
 
     @Transactional
     public LotDto updateLot(Long id, UpdateLotDto updateLotDto, Long currentUserId) {
-        Lot lot = getLotEntityById(id);
+        Lot lot = getLotToBidById(id);
         checkOwnership(lot, currentUserId);
 
         if (lot.getStatus() != LotStatus.DRAFT && lot.getStatus() != LotStatus.PENDING_APPROVAL) {
@@ -140,12 +137,12 @@ public class LotService {
         Lot updatedLot = lotBuilder.build();
         lotRepository.save(updatedLot);
 
-        return lotMapper.mapToDto(updatedLot, currentUserId);
+        return lotMapper.mapToDto(updatedLot);
     }
 
     @Transactional
     public void deleteLot(Long id, Long currentUserId) {
-        Lot lot = getLotEntityById(id);
+        Lot lot = getLotToBidById(id);
         checkOwnership(lot, currentUserId);
 
         if (lot.getStatus() == LotStatus.ACTIVE) {
@@ -157,7 +154,7 @@ public class LotService {
 
     @Transactional
     public void updateLotCurrentPrice(Long lotId, BigDecimal newPrice) {
-        Lot lot = getLotEntityById(lotId);
+        Lot lot = getLotToBidById(lotId);
         Lot updatedLot = lot.toBuilder()
                 .currentPrice(newPrice)
                 .build();
@@ -165,13 +162,23 @@ public class LotService {
     }
 
     private boolean hasFilters(LotFilterDto filter) {
-        return filter.title() != null || filter.status() != null ||
-                filter.category_id() != null || filter.owner_id() != null;
+        return filter.title() != null;
     }
 
     private void checkOwnership(Lot lot, Long userId) {
         if (!lot.getOwner().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only modify your own lots");
         }
+    }
+
+    public Lot getLotToBidById(Long id) {
+        return lotRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lot not found"));
+    }
+
+    @Transactional
+    public Lot saveLot(Lot lot) {
+        log.debug("Saving lot #{} with status {}", lot.getId(), lot.getStatus());
+        return lotRepository.save(lot);
     }
 }

@@ -1,7 +1,6 @@
 package imbuy.backend.controller;
 
 import imbuy.backend.dto.*;
-import imbuy.backend.enums.LotStatus;
 import imbuy.backend.service.LotService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,29 +24,15 @@ public class LotController {
     @Operation(summary = "Get all lots with pagination and filtering")
     public ResponseEntity<PageResponse<LotDto>> getLots(
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Long ownerId,
             @RequestParam(required = false) Boolean activeOnly) {
-
-        LotStatus lotStatus = null;
-        if (status != null) {
-            try {
-                lotStatus = LotStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException e) {
-            }
-        }
 
         LotFilterDto filter = new LotFilterDto(
                 title,
-                lotStatus,
-                categoryId,
-                ownerId,
                 activeOnly != null ? activeOnly : false
         );
 
         Pageable pageable = PageRequest.of(0, 20);
-        PageResponse<LotDto> lots = lotService.getLots(filter, pageable, ownerId);
+        PageResponse<LotDto> lots = lotService.getLots(filter, pageable);
         return ResponseEntity.ok(lots);
     }
 
@@ -77,9 +62,8 @@ public class LotController {
     @PutMapping("/{id}/cancel")
     @Operation(summary = "Cancel lot")
     public ResponseEntity<LotDto> cancelLot(@PathVariable Long id,
-                                            @RequestParam Long currentUserId,
-                                            @RequestParam(required = false) String reason) {
-        LotDto cancelledLot = lotService.cancelLot(id, currentUserId, reason);
+                                            @RequestParam Long currentUserId) {
+        LotDto cancelledLot = lotService.cancelLot(id, currentUserId);
         return ResponseEntity.ok(cancelledLot);
     }
 

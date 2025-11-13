@@ -33,8 +33,6 @@ class LotDtoTest {
                 LotStatus.ACTIVE,
                 LocalDateTime.now().minusHours(1),
                 LocalDateTime.now().plusHours(1),
-                5,
-                null,
                 3L,
                 "winner123"
         );
@@ -60,8 +58,6 @@ class LotDtoTest {
                 LotStatus.ACTIVE,
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
-                0,
-                null,
                 null,
                 null
         );
@@ -76,7 +72,6 @@ class LotDtoTest {
     void lotDto_AllFields_ShouldHaveCorrectValues() {
         LocalDateTime startDate = LocalDateTime.now().minusHours(1);
         LocalDateTime endDate = LocalDateTime.now().plusHours(1);
-        LocalDateTime createdAt = LocalDateTime.now();
 
         LotDto lotDto = new LotDto(
                 1L,
@@ -92,8 +87,6 @@ class LotDtoTest {
                 LotStatus.COMPLETED,
                 startDate,
                 endDate,
-                15,
-                "Invalid description",
                 20L,
                 "winneruser"
         );
@@ -111,8 +104,6 @@ class LotDtoTest {
         assertThat(lotDto.status()).isEqualTo(LotStatus.COMPLETED);
         assertThat(lotDto.start_date()).isEqualTo(startDate);
         assertThat(lotDto.end_date()).isEqualTo(endDate);
-        assertThat(lotDto.bid_count()).isEqualTo(15);
-        assertThat(lotDto.rejection_reason()).isEqualTo("Invalid description");
         assertThat(lotDto.winner_id()).isEqualTo(20L);
         assertThat(lotDto.winner_username()).isEqualTo("winneruser");
     }
@@ -126,19 +117,19 @@ class LotDtoTest {
                 1L, "Test Lot", null, new BigDecimal("100.00"), null,
                 new BigDecimal("10.00"), null, null, null, null,
                 LotStatus.ACTIVE, startDate, endDate, null,
-                null, null, null
+                null
         );
 
         LotDto dto2 = new LotDto(
                 1L, "Test Lot", null, new BigDecimal("100.00"), null,
-                new BigDecimal("10.00"), null, null, null, null,
+                new BigDecimal("10.00"), null, null,null,null,
                 LotStatus.ACTIVE, startDate, endDate, null,
-                null, null, null
+                null
         );
 
         LotDto differentDto = new LotDto(
-                2L, "Different Lot", null, null, null, null, null,
-                null, null, null, null, null, null,
+                20L, "Different Lot", null, null, null, null, null,
+                null, null, null, null,
                 null, null, null, null
         );
 

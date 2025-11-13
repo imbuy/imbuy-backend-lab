@@ -10,9 +10,9 @@ class LotFilterDtoTest {
 
     @Test
     void lotFilterDto_EqualsAndHashCode_ShouldWorkCorrectly() {
-        LotFilterDto filter1 = new LotFilterDto("Test", LotStatus.ACTIVE, 1L, 2L, true);
-        LotFilterDto filter2 = new LotFilterDto("Test", LotStatus.ACTIVE, 1L, 2L, true);
-        LotFilterDto differentFilter = new LotFilterDto("Different", null, null, null, false);
+        LotFilterDto filter1 = new LotFilterDto("Test", true);
+        LotFilterDto filter2 = new LotFilterDto("Test", true);
+        LotFilterDto differentFilter = new LotFilterDto("Different", false);
 
         assertThat(filter1).isEqualTo(filter2);
         assertThat(filter1).isNotEqualTo(differentFilter);
@@ -25,23 +25,17 @@ class LotFilterDtoTest {
 
     @Test
     void lotFilterDto_DefaultValues_ShouldBeCorrect() {
-        LotFilterDto filterDto = new LotFilterDto(null, null, null, null, false);
+        LotFilterDto filterDto = new LotFilterDto(null, false);
 
         assertThat(filterDto.active_only()).isFalse();
         assertThat(filterDto.title()).isNull();
-        assertThat(filterDto.status()).isNull();
-        assertThat(filterDto.category_id()).isNull();
-        assertThat(filterDto.owner_id()).isNull();
     }
 
     @Test
     void lotFilterDto_WithAllFields_ShouldSetCorrectly() {
-        LotFilterDto filterDto = new LotFilterDto("Test", LotStatus.ACTIVE, 1L, 2L, true);
+        LotFilterDto filterDto = new LotFilterDto("Test", true);
 
         assertThat(filterDto.title()).isEqualTo("Test");
-        assertThat(filterDto.status()).isEqualTo(LotStatus.ACTIVE);
-        assertThat(filterDto.category_id()).isEqualTo(1L);
-        assertThat(filterDto.owner_id()).isEqualTo(2L);
         assertThat(filterDto.active_only()).isTrue();
     }
 }
