@@ -31,15 +31,13 @@ public class BidService {
     private final LotService lotService;
     private final AuthService userService;
 
-    @Transactional(readOnly = true)
     public PageResponse<BidDto> getBidsByLotId(Long lotId, Pageable pageable) {
         Lot lot = lotService.getLotToBidById(lotId);
         Page<Bid> bids = bidRepository.findByLotIdOrderByCreatedAtDesc(lot.getId(), pageable);
         return PageResponse.of(bids.map(bidMapper::mapToDto));
     }
 
-    @Transactional(readOnly = true)
-    public Optional<Bid> findWinningBidEntity(Long lotId) {
+    public Optional<Bid> findWinningBid(Long lotId) {
         return bidRepository.findTopByLotIdOrderByAmountDesc(lotId);
     }
 
@@ -83,7 +81,6 @@ public class BidService {
         }
     }
 
-    @Transactional(readOnly = true)
     public BidDto getWinningBid(Long lotId) {
         return bidRepository.findTopByLotIdOrderByAmountDesc(lotId)
                 .map(bidMapper::mapToDto)

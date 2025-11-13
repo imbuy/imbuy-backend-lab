@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -42,6 +43,7 @@ public class CategoryService {
         return categoryMapper.toDtoWithChildren(category);
     }
 
+    @Transactional
     public CategoryDto createCategory(CategoryDto categoryDto) {
         if (categoryRepository.existsByNameAndParentId(categoryDto.name(), categoryDto.parent_id())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category with this name already exists");
@@ -61,6 +63,7 @@ public class CategoryService {
         return categoryMapper.toDtoWithChildren(category);
     }
 
+    @Transactional
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
@@ -81,7 +84,7 @@ public class CategoryService {
         return categoryMapper.toDtoWithChildren(updatedCategory);
     }
 
-
+    @Transactional
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
