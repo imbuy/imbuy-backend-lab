@@ -29,7 +29,6 @@ public class LotService {
     private final CategoryService categoryService;
     private final AuthService userService;
 
-    @Transactional(readOnly = true)
     public PageResponse<LotDto> getLots(LotFilterDto filter, Pageable pageable) {
         Page<Lot> lots;
 
@@ -47,13 +46,11 @@ public class LotService {
         return PageResponse.of(lots.map(lotMapper::mapToDto));
     }
 
-    @Transactional(readOnly = true)
     public LotDto getLotById(Long id) {
         Lot lot = getLotToBidById(id);
         return lotMapper.mapToDto(lot);
     }
 
-    @Transactional(readOnly = true)
     public Page<Lot> getActiveLots(Pageable pageable) {
         return lotRepository.findByStatus(LotStatus.ACTIVE, pageable);
     }
@@ -177,8 +174,8 @@ public class LotService {
     }
 
     @Transactional
-    public Lot saveLot(Lot lot) {
+    public void saveLot(Lot lot) {
         log.debug("Saving lot #{} with status {}", lot.getId(), lot.getStatus());
-        return lotRepository.save(lot);
+        lotRepository.save(lot);
     }
 }

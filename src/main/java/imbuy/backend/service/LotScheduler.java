@@ -2,15 +2,12 @@ package imbuy.backend.service;
 
 import imbuy.backend.domain.Lot;
 import imbuy.backend.enums.LotStatus;
-import imbuy.backend.repository.BidRepository;
-import imbuy.backend.repository.LotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -22,10 +19,9 @@ import java.time.ZoneId;
 public class LotScheduler {
 
     private final LotService lotService;
-    private final BidRepository bidRepository;
+    private final BidService bidService;
 
     @Scheduled(fixedRate = 60000)
-    @Transactional
     public void closeExpiredLots() {
         ZoneId zone = ZoneId.of("Europe/Warsaw");
         LocalDateTime now = LocalDateTime.now(zone);
@@ -60,7 +56,7 @@ public class LotScheduler {
         Lot.LotBuilder lotBuilder = lot.toBuilder()
                 .status(LotStatus.COMPLETED);
 
-        bidRepository.findTopByLotIdOrderByAmountDesc(lot.getId())
+        bidService.findWinningBid(lot.getId())
                 .ifPresentOrElse(bid -> {
                     lotBuilder.winner(bid.getBidder());
                     log.info("Winner: user #{} ({}), bid = {}",
