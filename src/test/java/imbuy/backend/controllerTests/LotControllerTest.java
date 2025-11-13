@@ -54,8 +54,6 @@ class LotControllerTest {
                 LotStatus.ACTIVE,        // status
                 LocalDateTime.now(),     // start_date
                 LocalDateTime.now().plusDays(1),
-                0,                       // bid_count
-                null,                     // rejection_reason
                 null,                     // winner_id
                 null                      // winner_username
         );
@@ -65,14 +63,14 @@ class LotControllerTest {
 
     @Test
     void getLots_ShouldReturnPaginatedLots() {
-        when(lotService.getLots(any(), any(PageRequest.class), any())).thenReturn(lotPageResponse);
+        when(lotService.getLots(any(), any(PageRequest.class))).thenReturn(lotPageResponse);
 
-        ResponseEntity<PageResponse<LotDto>> response = lotController.getLots(null, null, null, null, null);
+        ResponseEntity<PageResponse<LotDto>> response = lotController.getLots(null, null);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotPageResponse, response.getBody());
-        verify(lotService).getLots(any(), any(PageRequest.class), any());
+        verify(lotService).getLots(any(), any(PageRequest.class));
     }
 
     @Test
@@ -116,14 +114,14 @@ class LotControllerTest {
 
     @Test
     void cancelLot_ShouldReturnCancelledLot() {
-        when(lotService.cancelLot(1L, 1L, "Reason")).thenReturn(lotDto);
+        when(lotService.cancelLot(1L, 1L)).thenReturn(lotDto);
 
-        ResponseEntity<LotDto> response = lotController.cancelLot(1L, 1L, "Reason");
+        ResponseEntity<LotDto> response = lotController.cancelLot(1L, 1L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(lotDto, response.getBody());
-        verify(lotService).cancelLot(1L, 1L, "Reason");
+        verify(lotService).cancelLot(1L, 1L);
     }
 
     @Test

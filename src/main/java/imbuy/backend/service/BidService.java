@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -26,20 +27,25 @@ import java.time.LocalDateTime;
 public class BidService {
 
     private final BidRepository bidRepository;
+    private final BidMapper bidMapper;
     private final LotService lotService;
     private final AuthService userService;
-    private final BidMapper bidMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<BidDto> getBidsByLotId(Long lotId, Pageable pageable) {
-        Lot lot = lotService.getLotEntityById(lotId);
+        Lot lot = lotService.getLotToBidById(lotId);
         Page<Bid> bids = bidRepository.findByLotIdOrderByCreatedAtDesc(lot.getId(), pageable);
         return PageResponse.of(bids.map(bidMapper::mapToDto));
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Bid> findWinningBidEntity(Long lotId) {
+        return bidRepository.findTopByLotIdOrderByAmountDesc(lotId);
+    }
+
     @Transactional
     public BidDto placeBid(Long lotId, CreateBidDto createBidDto, Long currentUserId) {
-        Lot lot = lotService.getLotEntityById(lotId);
+        Lot lot = lotService.getLotToBidById(lotId);
         User bidder = userService.getUserById(currentUserId);
 
         if (lot.getOwner().getId().equals(currentUserId)) {
@@ -81,7 +87,7 @@ public class BidService {
     public BidDto getWinningBid(Long lotId) {
         return bidRepository.findTopByLotIdOrderByAmountDesc(lotId)
                 .map(bidMapper::mapToDto)
-                .orElse(null);
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Winner not found"));
     }
 }
 

@@ -21,7 +21,7 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class LotScheduler {
 
-    private final LotRepository lotRepository;
+    private final LotService lotService;
     private final BidRepository bidRepository;
 
     @Scheduled(fixedRate = 60000)
@@ -38,7 +38,7 @@ public class LotScheduler {
         Page<Lot> activeLots;
 
         do {
-            activeLots = lotRepository.findByStatus(LotStatus.ACTIVE, PageRequest.of(page, size));
+            activeLots = lotService.getActiveLots(PageRequest.of(page, size));
             log.info("Checking page {} ({} active lots)", page, activeLots.getNumberOfElements());
 
             for (Lot lot : activeLots.getContent()) {
@@ -68,6 +68,6 @@ public class LotScheduler {
                 }, () -> log.info("Lot #{} has not bid, winner is not exist -", lot.getId()));
 
         Lot updatedLot = lotBuilder.build();
-        lotRepository.save(updatedLot);
+        lotService.saveLot(updatedLot);
     }
 }
