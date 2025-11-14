@@ -29,7 +29,7 @@ public class BidService {
     private final BidRepository bidRepository;
     private final BidMapper bidMapper;
     private final LotService lotService;
-    private final AuthService userService;
+    private final UserService userService;
 
     public PageResponse<BidDto> getBidsByLotId(Long lotId, Pageable pageable) {
         Lot lot = lotService.getLotToBidById(lotId);

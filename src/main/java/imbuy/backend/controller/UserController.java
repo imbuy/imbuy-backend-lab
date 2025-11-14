@@ -1,7 +1,7 @@
 package imbuy.backend.controller;
 
 import imbuy.backend.dto.*;
-import imbuy.backend.service.AuthService;
+import imbuy.backend.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Users", description = "API for management users")
 public class UserController {
 
-    private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/auth/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+        return ResponseEntity.ok(userService.register(request));
     }
 
     @GetMapping("/users/all")
@@ -29,12 +29,12 @@ public class UserController {
             @RequestParam(defaultValue = "20") int size) {
 
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
-        return ResponseEntity.ok(authService.findAllUsers(pageable));
+        return ResponseEntity.ok(userService.findAllUsers(pageable));
     }
 
     @GetMapping("/users/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(authService.findById(id));
+        return ResponseEntity.ok(userService.findById(id));
     }
 
     @PostMapping("/users/profile/{userId}")
@@ -42,6 +42,6 @@ public class UserController {
             @PathVariable Long userId,
             @Valid @RequestBody RegisterRequest request) {
 
-        return ResponseEntity.ok(authService.updateProfile(userId, request));
+        return ResponseEntity.ok(userService.updateProfile(userId, request));
     }
 }

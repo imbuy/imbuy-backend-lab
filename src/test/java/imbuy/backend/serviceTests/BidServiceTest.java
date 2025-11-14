@@ -14,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -97,12 +99,16 @@ class BidServiceTest {
     }
 
     @Test
-    void getWinningBid_WithNoBids_ShouldReturnNull() {
-        when(bidRepository.findTopByLotIdOrderByAmountDesc(1L)).thenReturn(Optional.empty());
+    void getWinningBid_WithNoBids_ShouldThrowNotFound() {
+        when(bidRepository.findTopByLotIdOrderByAmountDesc(1L))
+                .thenReturn(Optional.empty());
 
-        BidDto result = bidService.getWinningBid(1L);
+        ResponseStatusException ex = assertThrows(
+                ResponseStatusException.class,
+                () -> bidService.getWinningBid(1L)
+        );
 
-        assertNull(result);
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
         verify(bidRepository).findTopByLotIdOrderByAmountDesc(1L);
         verifyNoInteractions(bidMapper);
     }
