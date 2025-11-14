@@ -6,7 +6,7 @@ import imbuy.backend.dto.RegisterRequest;
 import imbuy.backend.dto.UserDto;
 import imbuy.backend.repository.UserRepository;
 import imbuy.backend.mapper.UserMapper;
-import imbuy.backend.service.AuthService;
+import imbuy.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceTest {
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -36,7 +36,7 @@ class AuthServiceTest {
     private UserMapper userMapper;
 
     @InjectMocks
-    private AuthService authService;
+    private UserService userService;
 
     private RegisterRequest registerRequest;
     private User user;
@@ -61,7 +61,7 @@ class AuthServiceTest {
         when(userRepository.existsByEmail(registerRequest.email())).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        User result = authService.register(registerRequest);
+        User result = userService.register(registerRequest);
 
         assertNotNull(result);
         assertEquals(user.getEmail(), result.getEmail());
@@ -73,7 +73,7 @@ class AuthServiceTest {
     void register_WithExistingEmail_ShouldThrowException() {
         when(userRepository.existsByEmail(registerRequest.email())).thenReturn(true);
 
-        assertThrows(ResponseStatusException.class, () -> authService.register(registerRequest));
+        assertThrows(ResponseStatusException.class, () -> userService.register(registerRequest));
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -84,7 +84,7 @@ class AuthServiceTest {
         when(userRepository.findAll(any(Pageable.class))).thenReturn(userPage);
         when(userMapper.mapToDto(any(User.class))).thenReturn(userDto);
 
-        PageResponse<UserDto> result = authService.findAllUsers(PageRequest.of(0, 20));
+        PageResponse<UserDto> result = userService.findAllUsers(PageRequest.of(0, 20));
 
         assertNotNull(result);
         assertNotNull(result.content());
@@ -98,7 +98,7 @@ class AuthServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userMapper.mapToDto(user)).thenReturn(userDto);
 
-        UserDto result = authService.findById(1L);
+        UserDto result = userService.findById(1L);
 
         assertNotNull(result);
         assertEquals(user.getEmail(), result.email());
@@ -109,7 +109,7 @@ class AuthServiceTest {
     void findById_WithNonExistingUser_ShouldThrowException() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(ResponseStatusException.class, () -> authService.findById(1L));
+        assertThrows(ResponseStatusException.class, () -> userService.findById(1L));
     }
 
     @Test
@@ -123,7 +123,7 @@ class AuthServiceTest {
             return new UserDto(u.getId(), u.getEmail(), u.getUsername());
         });
 
-        UserDto result = authService.updateProfile(1L, updateRequest);
+        UserDto result = userService.updateProfile(1L, updateRequest);
 
         assertNotNull(result);
         assertEquals("newusername", result.username());

@@ -27,7 +27,7 @@ public class LotService {
     private final LotRepository lotRepository;
     private final LotMapper lotMapper;
     private final CategoryService categoryService;
-    private final AuthService userService;
+    private final UserService userService;
 
     public PageResponse<LotDto> getLots(LotFilterDto filter, Pageable pageable) {
         Page<Lot> lots;
