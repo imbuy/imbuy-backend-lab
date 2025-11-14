@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -141,7 +140,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getLots_ShouldReturnAllLots() throws Exception {
         mockMvc.perform(get("/api/lots"))
                 .andExpect(status().isOk())
@@ -152,7 +150,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getLots_ShouldFilterByTitle() throws Exception {
         mockMvc.perform(get("/api/lots")
                         .param("title", "Active"))
@@ -162,7 +159,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getLots_ShouldFilterActiveOnly() throws Exception {
         mockMvc.perform(get("/api/lots")
                         .param("activeOnly", "true"))
@@ -173,7 +169,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getLotById_ShouldReturnNotFound_WhenNotExists() throws Exception {
         Long nonExistentId = 999L;
         mockMvc.perform(get("/api/lots/{id}", nonExistentId))
@@ -181,7 +176,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void createLot_ShouldCreateLot_WhenValidData() throws Exception {
         String createLotJson = """
                 {
@@ -219,7 +213,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void createLot_ShouldCreateLot_WhenNoCategory() throws Exception {
         String createLotJson = """
                 {
@@ -242,7 +235,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void createLot_ShouldReturnBadRequest_WhenInvalidData() throws Exception {
         String invalidLotJson = """
                 {
@@ -260,7 +252,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void createLot_ShouldReturnNotFound_WhenUserNotExists() throws Exception {
         String createLotJson = """
                 {
@@ -279,7 +270,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void createLot_ShouldReturnNotFound_WhenCategoryNotExists() throws Exception {
         String createLotJson = """
                 {
@@ -298,7 +288,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void approveLot_ShouldApproveLot_WhenOwnerAndPending() throws Exception {
         mockMvc.perform(put("/api/lots/{id}/approve", pendingLot.getId())
                         .param("currentUserId", owner.getId().toString()))
@@ -311,7 +300,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void cancelLot_ShouldCancelLot_WhenOwnerAndPending() throws Exception {
         mockMvc.perform(put("/api/lots/{id}/cancel", pendingLot.getId())
                         .param("currentUserId", owner.getId().toString()))
@@ -324,7 +312,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void updateLot_ShouldReturnForbidden_WhenNotOwner() throws Exception {
         String updateJson = """
                 {
@@ -340,7 +327,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void deleteLot_ShouldDeleteLot_WhenOwnerAndNotActive() throws Exception {
         mockMvc.perform(delete("/api/lots/{id}", pendingLot.getId())
                         .param("currentUserId", owner.getId().toString()))
@@ -350,7 +336,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void deleteLot_ShouldReturnForbidden_WhenNotOwner() throws Exception {
         mockMvc.perform(delete("/api/lots/{id}", pendingLot.getId())
                         .param("currentUserId", anotherUser.getId().toString()))
@@ -358,7 +343,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void deleteLot_ShouldReturnNotFound_WhenLotNotExists() throws Exception {
         Long nonExistentId = 999L;
         mockMvc.perform(delete("/api/lots/{id}", nonExistentId)
@@ -367,7 +351,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void createLot_ShouldSetCurrentPriceEqualToStartPrice() throws Exception {
         String createLotJson = """
                 {
@@ -393,7 +376,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getLots_ShouldHandleNoFilters() throws Exception {
         mockMvc.perform(get("/api/lots"))
                 .andExpect(status().isOk())
@@ -401,7 +383,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getLots_ShouldHandleEmptyResult() throws Exception {
         lotRepository.deleteAll();
 
@@ -411,7 +392,6 @@ class LotControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void createLot_ShouldUseCurrentTime_WhenNoStartDateProvided() throws Exception {
         String createLotJson = """
                 {

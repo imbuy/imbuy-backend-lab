@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -128,7 +127,6 @@ class BidControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getBidsByLotId_ShouldReturnEmptyList_WhenNoBidsExist() throws Exception {
         mockMvc.perform(get("/api/lots/{lotId}/bids", lotId)
                         .param("page", "0")
@@ -142,7 +140,6 @@ class BidControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getBidsByLotId_ShouldRespectPagination() throws Exception {
         for (int i = 1; i <= 5; i++) {
             Bid bid = Bid.builder()
@@ -164,7 +161,6 @@ class BidControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void placeBid_ShouldCreateBid_WhenValidData() throws Exception {
         CreateBidDto createBidDto = new CreateBidDto(BigDecimal.valueOf(110));
 
@@ -188,7 +184,6 @@ class BidControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void placeBid_ShouldReturnBadRequest_WhenInvalidAmount() throws Exception {
         mockMvc.perform(post("/api/lots/{lotId}/bids", lotId)
                         .param("currentUserId", bidderId.toString())
@@ -202,7 +197,6 @@ class BidControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getWinningBid_ShouldReturnNotFound_WhenNoBids() throws Exception {
         mockMvc.perform(get("/api/lots/{lotId}/bids/winning", lotId))
                 .andExpect(status().isNotFound());
@@ -210,7 +204,6 @@ class BidControllerIntegrationTest {
 
 
     @Test
-    @WithMockUser
     void getBidsByLotId_ShouldReturnNotFound_WhenLotDoesNotExist() throws Exception {
         Long nonExistentLotId = 999L;
         mockMvc.perform(get("/api/lots/{lotId}/bids", nonExistentLotId))
@@ -218,7 +211,6 @@ class BidControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void placeBid_ShouldReturnNotFound_WhenLotDoesNotExist() throws Exception {
         Long nonExistentLotId = 999L;
         mockMvc.perform(post("/api/lots/{lotId}/bids", nonExistentLotId)
@@ -233,7 +225,6 @@ class BidControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void placeBid_ShouldReturnNotFound_WhenUserDoesNotExist() throws Exception {
         Long nonExistentUserId = 999L;
         mockMvc.perform(post("/api/lots/{lotId}/bids", lotId)
@@ -248,7 +239,6 @@ class BidControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getBidsByLotId_WithSizeGreaterThan50_ShouldLimitTo50() throws Exception {
         mockMvc.perform(get("/api/lots/{lotId}/bids", lotId)
                         .param("page", "0")

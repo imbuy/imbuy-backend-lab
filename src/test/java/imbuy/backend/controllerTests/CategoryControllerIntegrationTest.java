@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -90,7 +89,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getAllCategoriesPaginated_ShouldReturnPaginatedCategories() throws Exception {
         mockMvc.perform(get("/api/categories")
                         .param("page", "0")
@@ -104,7 +102,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getAllCategoriesPaginated_ShouldRespectPagination() throws Exception {
         mockMvc.perform(get("/api/categories")
                         .param("page", "0")
@@ -117,7 +114,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getCategoryById_ShouldReturnNotFound_WhenNotExists() throws Exception {
         Long nonExistentId = 999L;
         mockMvc.perform(get("/api/categories/{id}", nonExistentId))
@@ -125,7 +121,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void createCategory_ShouldCreateRootCategory_WhenValidData() throws Exception {
         String categoryJson = """
                 {
@@ -146,7 +141,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void createCategory_ShouldCreateChildCategory_WhenParentProvided() throws Exception {
         String categoryJson = """
                 {
@@ -171,7 +165,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void createCategory_ShouldReturnBadRequest_WhenNameIsBlank() throws Exception {
         String categoryJson = """
                 {
@@ -186,7 +179,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void updateCategory_ShouldChangeParent_WhenNewParentProvided() throws Exception {
         Category newParent = Category.builder()
                 .name("New Parent")
@@ -213,7 +205,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void updateCategory_ShouldRemoveParent_WhenParentIdIsNull() throws Exception {
         String updateJson = """
                 {
@@ -235,7 +226,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void updateCategory_ShouldReturnNotFound_WhenCategoryNotExists() throws Exception {
         Long nonExistentId = 999L;
         String updateJson = """
@@ -251,7 +241,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void deleteCategory_ShouldDeleteCategory_WhenNoDependencies() throws Exception {
         Category deletableCategory = Category.builder()
                 .name("Deletable Category")
@@ -265,7 +254,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void deleteCategory_ShouldReturnNotFound_WhenCategoryNotExists() throws Exception {
         Long nonExistentId = 999L;
         mockMvc.perform(delete("/api/categories/delete/{id}", nonExistentId))
@@ -273,7 +261,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getAllCategoriesPaginated_WithSizeGreaterThan50_ShouldLimitTo50() throws Exception {
         mockMvc.perform(get("/api/categories")
                         .param("page", "0")
@@ -282,7 +269,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
     void getCategoryTree_ShouldHandleEmptyDatabase() throws Exception {
         categoryRepository.deleteAll();
 
@@ -292,7 +278,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void createCategory_ShouldAllowSameNameInDifferentParents() throws Exception {
         Category otherParent = Category.builder()
                 .name("Other Parent")
@@ -315,7 +300,6 @@ class CategoryControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
     void updateCategory_ShouldNotAllowCircularReference() throws Exception {
         String updateJson = """
                 {
